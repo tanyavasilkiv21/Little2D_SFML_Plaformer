@@ -62,13 +62,13 @@ void Scene_Menu::sDoAction(const Action& action)
 			switch (m_selectedItemIndex)
 			{
 			case 0:
-				m_game->changeScene("Level1", std::make_shared<Scene_Level>(m_game, "meow.txt"));
+				m_game->changeScene("Level1", std::make_shared<Scene_Level>(m_game, "levels_config/level1.txt"));
 				break;
 			case 1:
-				m_game->changeScene("Level2", std::make_shared<Scene_Level>(m_game, "meow.txt"));
+				m_game->changeScene("Level2", std::make_shared<Scene_Level>(m_game, "levels_config/level2.txt"));
 				break;
 			case 2:
-				m_game->changeScene("Level3", std::make_shared<Scene_Level>(m_game, "meow.txt"));
+				m_game->changeScene("Level3", std::make_shared<Scene_Level>(m_game, "levels_config/level3.txt"));
 				break;
 			}
 		}

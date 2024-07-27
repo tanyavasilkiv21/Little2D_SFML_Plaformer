@@ -3,7 +3,7 @@
 
 int main() 
 {
-    GameEngine g("meow.txt");
+    GameEngine g("levels_config/assets.txt");
     g.run();
     return 0;
 }

@@ -1,0 +1,15 @@
+tile tile_one 0 4
+tile tile_one 1 4
+tile tile_one 2 4
+tile tile_one 3 4
+tile tile_one 4 4
+tile tile_one 5 4
+tile tile_one 6 4
+tile tile_one 7 4
+tile tile_one 8 4
+tile tile_one 8 6
+tile tile_one 9 6
+
+dec tree_one 4 5
+
+player 0 4 64 64 5 5 5 5

@@ -1,0 +1,9 @@
+Font         georgia               fonts/georgia.ttf
+Texture      player                assets/Meow-Knight_Idle_1.png
+Texture      player_jump           assets/Meow-Knight_Jump.png
+Texture      tile_one              assets/tile_one.png
+Texture      tree_one              assets/tree_one.png
+Animation    idle       player         1     0
+Animation    jump       player_jump    1     0
+Animation    tile_one   tile_one       1     0
+Animation    tree_one   tree_one       1     0

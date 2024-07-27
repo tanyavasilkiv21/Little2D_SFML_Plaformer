@@ -1,11 +1,13 @@
 #include "Scene_Level.h"
-#include <iostream>
-#include <math.h>
-#include <algorithm>
 #include "GameEngine.h"
 #include "Physics.h"
 #include "Scene_Menu.h"
 
+#include <iostream>
+#include <math.h>
+#include <algorithm>
+#include <fstream>
+#include <sstream>
 Scene_Level::Scene_Level(GameEngine* gameEngine, const std::string& levelPath)
 	:Scene(gameEngine), m_levelPath(levelPath)
 {
@@ -54,6 +56,16 @@ void Scene_Level::sMovement()
 		auto& playerInput = m_player->getComponent<CInput>();
 		auto& playerTransform = m_player->getComponent<CTransform>();
 		playerTransform.pos.y += m_player->getComponent<CGravity>().gravity;
+		
+		if (std::abs(playerTransform.pos.x - playerTransform.prevPos.x) != playerTransform.velocity.x)
+		{
+			playerTransform.prevPos.x = playerTransform.prevPos.x + playerTransform.velocity.x;
+		}
+		if (std::abs(playerTransform.pos.y - playerTransform.prevPos.y) != playerTransform.velocity.y)
+		{
+			playerTransform.prevPos.y = playerTransform.prevPos.y + playerTransform.velocity.y;
+		}
+
 		if (playerInput.right == true)
 		{
 			playerTransform.pos.x += playerTransform.velocity.x;
@@ -72,8 +84,6 @@ void Scene_Level::sMovement()
 			}
 		}
 	}
-	
-	// TODO: Implement the maxmimum player speed in both X and Y directions 
 }
 
 void Scene_Level::sEnemySpawner()
@@ -86,7 +96,7 @@ void Scene_Level::sCollision()
 	auto& playerTransform = m_player->getComponent<CTransform>();
 	if (playerTransform.pos.y >= height() || playerTransform.pos.y  <= 0)
 	{
-		playerTransform.pos = Vec2(gridToMidPixel(0, 6, m_player));
+		playerTransform.pos = Vec2(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player));
 	}
 	if ((playerTransform.pos.x - 16 - playerTransform.velocity.x <= 0))
 	{
@@ -257,31 +267,27 @@ void Scene_Level::sDoAction(const Action& action)
 		}
 		if (m_framesForJump >= 5)
 		{
-			m_player->getComponent<CGravity>().gravity = 5;
+			m_player->getComponent<CGravity>().gravity = m_playerConfig.GRAVITY;
 
 		}
-		if (action.name() == "UP" && m_framesForJump <= 5)
+		if (action.name() == "UP" && m_framesForJump <= m_playerConfig.JUMP)
 		{
-
-			std::cout << "Meow up\n";
 			if (m_player->getComponent<CGravity>().gravity > 0 && m_player->getComponent<CInput>().canJump)
 			{
-				std::cout << "grv on\n";
 				m_player->getComponent<CInput>().canJump = false;
 				m_player->getComponent<CGravity>().gravity *= -1;
 				
 			}
-			else if (!m_player->getComponent<CInput>().canJump && m_framesForJump >= 5)
+			else if (!m_player->getComponent<CInput>().canJump && m_framesForJump >= m_playerConfig.JUMP)
 			{
-				std::cout << "grv off\n";
-				m_player->getComponent<CGravity>().gravity = 5;
+				m_player->getComponent<CGravity>().gravity = m_playerConfig.GRAVITY;
 			}
 		}
 		if (action.name() == "LEFT")
 		{
 			if (!m_player->getComponent<CInput>().canJump)
 			{
-				m_player->getComponent<CGravity>().gravity = 5;
+				m_player->getComponent<CGravity>().gravity = m_playerConfig.GRAVITY;
 			}
 			m_player->getComponent<CInput>().left = true;
 		}
@@ -289,7 +295,7 @@ void Scene_Level::sDoAction(const Action& action)
 		{
 			if (!m_player->getComponent<CInput>().canJump)
 			{
-				m_player->getComponent<CGravity>().gravity = 5;
+				m_player->getComponent<CGravity>().gravity = m_playerConfig.GRAVITY;
 			}
 			m_player->getComponent<CInput>().right = true;
 		}
@@ -305,7 +311,7 @@ void Scene_Level::sDoAction(const Action& action)
 		{
 			if (m_player->getComponent<CGravity>().gravity < 0)
 			{
-				m_player->getComponent<CGravity>().gravity = 5;
+				m_player->getComponent<CGravity>().gravity = m_playerConfig.GRAVITY;
 			}
 			m_framesForJump = 0;
 		}
@@ -318,7 +324,6 @@ void Scene_Level::sDoAction(const Action& action)
 			m_player->getComponent<CInput>().right = false;
 		}
 	}
-	std::cout << m_framesForJump << std::endl;
 }
 
 void Scene_Level::sDebug()
@@ -341,45 +346,56 @@ void Scene_Level::loadLevel(const std::string& filename)
 	// reset the entity manager every time we load a level
 	m_entityManager = EntityManager();
 
-	// TODO: read in the level file and add the appropriate entities
-	// use the PlayerConfig struct m_playerConfig to store player properties
-	// this struct is defined at the top of Scene_Play.h
-	// NOTE: all of the code below is sample code which shows you how to
-	// set up and use entities with the new syntax, it should be removed
-
-	spawnPlayer();
-	for (int i = 0; i <= 8; i++)
+	std::ifstream fileIn(filename);
+	if (fileIn.is_open())
 	{
-		auto brick = m_entityManager.addEntity("tile");
-
-		brick->addComponent<CAnimation>(m_game->assets().getAnimation("tile_one"), true);
-		brick->addComponent<CTransform>(gridToMidPixel(i,4, brick), Vec2(0, 0), Vec2(4, 4), 1);
-		brick->addComponent<CBoundingBox>(Vec2(64, 64));
-		if (brick->getComponent<CAnimation>().animation.getName() == "tile_one")
+		std::string line;
+		while (std::getline(fileIn, line))
 		{
-			std::cout << "This could be a good way of identifying if a tile is a brick!\n";
+			std::istringstream iss(line);
+			std::string pieceOfLevelType;
+			if ((iss >> pieceOfLevelType))
+			{
+				if (pieceOfLevelType == "tile")
+				{
+					std::string nameAnim;
+					int x, y;
+					iss >> nameAnim >> x >> y;
+					auto tile = m_entityManager.addEntity(pieceOfLevelType);
+					tile->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
+					tile->addComponent<CTransform>(gridToMidPixel(x, y, tile), Vec2(0, 0), Vec2(4, 4), 1);
+					tile->addComponent<CBoundingBox>(Vec2(64, 64));
+				}
+				if (pieceOfLevelType == "dec")
+				{
+					std::string nameAnim;
+					int x, y;
+					iss >> nameAnim >> x >> y;
+					auto dec = m_entityManager.addEntity(pieceOfLevelType);
+					dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
+					dec->addComponent<CTransform>(gridToMidPixel(x, y, dec), Vec2(0, 0), Vec2(4, 4), 1);
+				}
+				if (pieceOfLevelType == "player")
+				{
+					iss >> m_playerConfig.X >> m_playerConfig.Y >> m_playerConfig.BX >> m_playerConfig.BY;
+					iss >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.JUMP >> m_playerConfig.GRAVITY;
+				}
+			}
 		}
 	}
-	auto brick = m_entityManager.addEntity("tile");
-
-	brick->addComponent<CAnimation>(m_game->assets().getAnimation("tile_one"), true);
-	brick->addComponent<CTransform>(gridToMidPixel(8, 6, brick), Vec2(0, 0), Vec2(4, 4), 1);
-	brick->addComponent<CBoundingBox>(Vec2(64, 64));
-	auto tree = m_entityManager.addEntity("tree");
-	tree->addComponent<CAnimation>(m_game->assets().getAnimation("tree_one"), true);
-	tree->addComponent<CTransform>(gridToMidPixel(4, 5, tree), Vec2(0, 0), Vec2(4, 4), 1);
-	
+	spawnPlayer();
 }
 
 void Scene_Level::spawnPlayer()
 {
 	m_player = m_entityManager.addEntity("player");
 	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("idle"), true);
-	m_player->addComponent<CTransform>(gridToMidPixel(0, 5, m_player), Vec2(5, 5), Vec2(4, 4), 1);
-	m_player->addComponent<CBoundingBox>(Vec2(64, 64));
+	m_player->addComponent<CTransform>  (gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player), 
+										Vec2(m_playerConfig.SPEED, m_playerConfig.SPEED), Vec2(4, 4), 1);
+	m_player->addComponent<CBoundingBox>(Vec2(m_playerConfig.BX, m_playerConfig.BY));
 	m_player->addComponent<CInput>();
-	m_player->addComponent<CGravity>(5);
-	m_player->addComponent<CState>(STAND);
+	m_player->addComponent<CGravity>(m_playerConfig.GRAVITY);
+	m_player->addComponent<CState>(stateType::STAND);
 }
 
 void Scene_Level::spawnBullet(std::shared_ptr<Entity> entity)

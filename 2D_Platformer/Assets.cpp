@@ -1,5 +1,6 @@
 #include "Assets.h"
-
+#include <fstream>
+#include <sstream>
 void Assets::addTexture(std::string name, std::string path)
 {
 	sf::Texture texture;
@@ -7,7 +8,7 @@ void Assets::addTexture(std::string name, std::string path)
 	m_textures[name] = texture;
 }
 
-void Assets::addAnimation(std::string name, std::string t, std::string path, int countFrames)
+void Assets::addAnimation(std::string name, std::string t, int countFrames, int speed)
 {
 	Animation animation(name, getTexture(t), countFrames, 0);
 	m_animation[name] = animation;
@@ -61,16 +62,40 @@ const sf::Font& Assets::getFont(std::string name) const
 
 void Assets::loadFromFile(const std::string& path)
 {
-	addFont("georgia", "fonts/georgia.ttf");
-
-	addTexture("player", "assets/Meow-Knight_Idle_1.png");
-	addAnimation("idle", "player", "assets/Meow-Knight_Idle_1.png", 1);
-	addTexture("player_jump", "assets/Meow-Knight_Jump.png");
-	addAnimation("jump", "player", "assets/Meow-Knight_Jump.png", 1);
-
-	addTexture("tile_one", "assets/tile_one.png");
-	addAnimation("tile_one", "tile_one", "assets/tile_one.png", 1);
-
-	addTexture("tree_one", "assets/tree_one.png");
-	addAnimation("tree_one", "tree_one", "assets/tree_one.png", 1);
+	std::ifstream fileIn(path);
+	if (fileIn.is_open())
+	{
+		std::string line;
+		while (std::getline(fileIn, line))
+		{
+			std::istringstream iss(line);
+			std::string assetType;
+			if ((iss >> assetType))
+			{
+				if (assetType == "Font")
+				{
+					std::string name;
+					std::string path;
+					iss >> name >> path;
+					addFont(name, path);
+				}
+				if (assetType == "Texture")
+				{
+					std::string name;
+					std::string path;
+					iss >> name >> path;
+					addTexture(name, path);
+				}
+				if (assetType == "Animation")
+				{
+					std::string name;
+					std::string textureName;
+					int countFrames;
+					int speed;
+					iss >> name >> textureName >> countFrames >> speed;
+					addAnimation(name, textureName, countFrames, speed);
+				}
+			}
+		}
+	}
 }

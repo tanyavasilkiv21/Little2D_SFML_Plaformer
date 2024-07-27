@@ -5,7 +5,8 @@
 
 void GameEngine::update()
 {
-
+    currentScene()->update();
+    sUserInput();
 }
 
 GameEngine::GameEngine(const std::string& path)
@@ -42,8 +43,7 @@ void GameEngine::run()
 {
     while (isRunning())
     {
-        currentScene()->update();
-        sUserInput();
+        update();
     }
 }
 

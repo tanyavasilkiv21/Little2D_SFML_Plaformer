@@ -12,7 +12,7 @@ class Assets
 public:
 
 	void addTexture(std::string name, std::string path);
-	void addAnimation(std::string name, std::string t, std::string path, int countFrames);
+	void addAnimation(std::string name, std::string t, int countFrames, int speed = 0);
 	//void addSound(std::string name, std::string path);
 	void addFont(std::string name, std::string path);
 
