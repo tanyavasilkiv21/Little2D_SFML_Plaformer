@@ -1,5 +1,5 @@
 #include "GameEngine.h"
-//#include "Scene_Menu.h"
+#include "Scene_Menu.h"
 #include <iostream>
 #include "Scene_Level.h"
 
@@ -18,7 +18,7 @@ void GameEngine::init(const std::string& path)
     m_assets.loadFromFile(path);
     m_window.create(sf::VideoMode(1280, 768), "Meow-Knight!");
     m_window.setFramerateLimit(60);
-    changeScene("Level", std::make_shared<Scene_Level>(this, path));
+    changeScene("Scene_Menu", std::make_shared<Scene_Menu>(this));
 }
 
 std::shared_ptr<Scene>& GameEngine::currentScene()
@@ -34,6 +34,8 @@ void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene
 
 void GameEngine::quit()
 {
+    m_window.close();
+    exit(0);
 }
 
 void GameEngine::run()

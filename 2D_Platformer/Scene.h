@@ -2,12 +2,12 @@
 
 #include "Action.h"
 #include "EntityManager.h"
-
 #include <memory>
 
 class GameEngine;
 
 typedef std::map<int, std::string> ActionMap;
+
 
 class Scene
 {
@@ -24,6 +24,7 @@ protected:
 
 public: 
 	Scene();
+	~Scene();
 	Scene(GameEngine* gameEngine);
 
 

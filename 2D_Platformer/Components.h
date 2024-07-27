@@ -81,11 +81,19 @@ public :
 	CGravity(double dataGravity)
 		:gravity(dataGravity) {};
 };
+
+enum stateType
+{
+	STAND,
+	AIR
+};
+
 class CState : public Component
 {
 public: 
-	std::string state = "stand";
+	
+	stateType state = STAND;
 	CState() {}
-	CState(const std::string& dataState)
+	CState(const stateType dataState)
 		:state(dataState) {}
 };

@@ -54,6 +54,11 @@ void Scene::setPaused(bool paused)
 {
 }
 
+Scene::~Scene()
+{
+
+}
+
 Scene::Scene(GameEngine* gameEngine)
 	:m_game(gameEngine)
 {

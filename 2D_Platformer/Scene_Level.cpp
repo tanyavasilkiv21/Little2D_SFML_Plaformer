@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "GameEngine.h"
 #include "Physics.h"
+#include "Scene_Menu.h"
 
 Scene_Level::Scene_Level(GameEngine* gameEngine, const std::string& levelPath)
 	:Scene(gameEngine), m_levelPath(levelPath)
@@ -21,7 +22,6 @@ void Scene_Level::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::W, "UP");
 	registerAction(sf::Keyboard::A, "LEFT");
 	registerAction(sf::Keyboard::D, "RIGHT");
-	// TODO: Register all other gameplay Actions
 
 	m_gridText.setCharacterSize(12);
 	m_gridText.setFont(m_game->assets().getFont("georgia"));
@@ -31,16 +31,17 @@ void Scene_Level::init(const std::string& levelPath)
 
 void Scene_Level::onEnd()
 {
+	m_game->changeScene("Scene_Menu", std::make_shared<Scene_Menu>(m_game), true);
 }
 
 void Scene_Level::sAnimation()
 {
 	auto& playerState = m_player->getComponent<CState>();
-	if (playerState.state == "jump")
+	if (playerState.state == stateType::AIR)
 	{
 		m_player->getComponent<CAnimation>().animation.getSprite().setTexture(m_game->assets().getTexture("player_jump"));
 	}
-	if (playerState.state == "idle")
+	if (playerState.state == stateType::STAND)
 	{
 		m_player->getComponent<CAnimation>().animation.getSprite().setTexture(m_game->assets().getTexture("player"));
 	}
@@ -70,10 +71,6 @@ void Scene_Level::sMovement()
 				playerTransform.scale.x *= -1;
 			}
 		}
-
-		if (playerInput.up == true)
-		{
-		}
 	}
 	
 	// TODO: Implement the maxmimum player speed in both X and Y directions 
@@ -85,25 +82,9 @@ void Scene_Level::sEnemySpawner()
 
 void Scene_Level::sCollision()
 {
-//REMEMBER: SFML's (0,0) position is on the TOP-LEFT corner
-//	This means jumping will have a negative y - component
-//	and gravity will have a positive y - component
-//	Also, something BELOW something else will have a y value GREATER than it
-//	Also, something ABOVE something else will have a y value LESS than it
-//	TODO :Implement Physics::GetOverlap() function, use it inside this function +
-
-//	TODO :  Implement bullet / tile collisions
-//			Destroy the tile if it has a Brick animation
-//	TODO :  Implement player / tile collisions and resolutions		   +
-//			Update the CState component of the player to store whether +
-//			it is currently on the ground or in the air.This will be   +
-//			used by the Animation system							   +
-//	TODO :  Check to see if the player has fallen down a hole(y > height()) +
-//	TODO :  Don't let the player walk off the left side of the map +
-
 	Physics physics;
 	auto& playerTransform = m_player->getComponent<CTransform>();
-	if (playerTransform.pos.y >= height())
+	if (playerTransform.pos.y >= height() || playerTransform.pos.y  <= 0)
 	{
 		playerTransform.pos = Vec2(gridToMidPixel(0, 6, m_player));
 	}
@@ -130,11 +111,16 @@ void Scene_Level::sCollision()
 			}
 			if (physics.GetOverlap(m_player, e).y == 0 || physics.GetOverlap(m_player, e).x == 0)
 			{
-				m_player->getComponent<CState>().state = "idle";
+				m_player->getComponent<CState>().state = stateType::STAND;
+				m_player->getComponent<CInput>().canJump = true;
 			}
 			else
 			{
-				m_player->getComponent<CState>().state = "jump";
+				if (!m_player->getComponent<CInput>().canJump)
+				{
+					m_player->getComponent<CState>().state = stateType::AIR;
+				}
+				m_player->getComponent<CInput>().canJump = false;
 			}
 		}
 	}
@@ -249,48 +235,79 @@ void Scene_Level::sDoAction(const Action& action)
 {
 	if (action.type() == "START")
 	{
-
 		if (action.name() == "TOGGLE_TEXTURE") 
 		{ 
 			m_drawTextures = !m_drawTextures; 
 		}
-
-		else if (action.name() == "TOGGLE_COLLISION")  
+		if (action.name() == "TOGGLE_COLLISION")  
 		{ 
 			m_drawCollision = !m_drawCollision; 
 		}
-		else if (action.name() == "TOGGLE_GRID") 
+		if (action.name() == "TOGGLE_GRID") 
 		{ 
 			m_drawGrid = !m_drawGrid; 
 		}
-		else if (action.name() == "PAUSE") 
+		if (action.name() == "PAUSE") 
 		{ 
 			setPaused(!m_paused); 
 		}
-		else if (action.name() == "QUIT") 
+		if (action.name() == "QUIT") 
 		{ 
 			onEnd(); 
 		}
-		else if (action.name() == "UP") 
+		if (m_framesForJump >= 5)
 		{
-			
+			m_player->getComponent<CGravity>().gravity = 5;
+
 		}
-		else if (action.name() == "LEFT") 
+		if (action.name() == "UP" && m_framesForJump <= 5)
 		{
+
+			std::cout << "Meow up\n";
+			if (m_player->getComponent<CGravity>().gravity > 0 && m_player->getComponent<CInput>().canJump)
+			{
+				std::cout << "grv on\n";
+				m_player->getComponent<CInput>().canJump = false;
+				m_player->getComponent<CGravity>().gravity *= -1;
+				
+			}
+			else if (!m_player->getComponent<CInput>().canJump && m_framesForJump >= 5)
+			{
+				std::cout << "grv off\n";
+				m_player->getComponent<CGravity>().gravity = 5;
+			}
+		}
+		if (action.name() == "LEFT")
+		{
+			if (!m_player->getComponent<CInput>().canJump)
+			{
+				m_player->getComponent<CGravity>().gravity = 5;
+			}
 			m_player->getComponent<CInput>().left = true;
 		}
-		else if (action.name() == "RIGHT") 
+		if (action.name() == "RIGHT")
 		{
+			if (!m_player->getComponent<CInput>().canJump)
+			{
+				m_player->getComponent<CGravity>().gravity = 5;
+			}
 			m_player->getComponent<CInput>().right = true;
 		}
-		
+		if(!m_player->getComponent<CInput>().canJump)
+		{
+			m_framesForJump++;
+		}
 	}
 
 	else if (action.type() == "END")
 	{
 		if (action.name() == "UP")
 		{
-			
+			if (m_player->getComponent<CGravity>().gravity < 0)
+			{
+				m_player->getComponent<CGravity>().gravity = 5;
+			}
+			m_framesForJump = 0;
 		}
 		else if (action.name() == "LEFT")
 		{
@@ -356,15 +373,13 @@ void Scene_Level::loadLevel(const std::string& filename)
 
 void Scene_Level::spawnPlayer()
 {
-	// here is a sample player entity which you can use to construct other entities
 	m_player = m_entityManager.addEntity("player");
 	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("idle"), true);
-	m_player->addComponent<CTransform>(gridToMidPixel(0, 6, m_player), Vec2(5, 5), Vec2(4, 4), 1);
+	m_player->addComponent<CTransform>(gridToMidPixel(0, 5, m_player), Vec2(5, 5), Vec2(4, 4), 1);
 	m_player->addComponent<CBoundingBox>(Vec2(64, 64));
 	m_player->addComponent<CInput>();
 	m_player->addComponent<CGravity>(5);
-	m_player->addComponent<CState>("idle");
-	// TODO: be sure to add the remaining components to the player
+	m_player->addComponent<CState>(STAND);
 }
 
 void Scene_Level::spawnBullet(std::shared_ptr<Entity> entity)

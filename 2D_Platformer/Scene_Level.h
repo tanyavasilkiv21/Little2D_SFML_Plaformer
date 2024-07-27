@@ -1,8 +1,8 @@
 #pragma once
 #include "Scene.h"
+
 class Scene_Level : public Scene
 {
-
 	struct PlayerConfig
 	{
 		float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
