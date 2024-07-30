@@ -34,7 +34,7 @@ void Animation::update()
 
 bool Animation::hasEnded() const
 {
-	if (m_frameCount == m_currentFrame)
+	if (m_frameCount - 1 == m_currentFrame)
 	{
 		return true;
 	}

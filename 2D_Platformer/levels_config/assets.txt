@@ -1,4 +1,4 @@
-Font         georgia               fonts/georgia.ttf
+Font		georgia			fonts/georgia.ttf
 
 Texture		player			assets/Meow-Knight_Idle.png
 Texture		player_jump		assets/Meow-Knight_Jump.png
@@ -8,6 +8,7 @@ Texture		tree_one		assets/tree_one.png
 Texture		star			assets/star.png
 Texture	     	rock			assets/rock.png
 Texture	     	bush			assets/bush.png
+Texture	     	explosion		assets/explosion.png
 
 
 Animation	idle		player		6     	1
@@ -18,4 +19,6 @@ Animation	tree_one	tree_one	1    	0
 Animation	star		star		1 	0
 Animation	rock		rock		1    	0
 Animation	bush		bush		1 	0
+Animation	explosion	explosion	5 	2.5
+
 

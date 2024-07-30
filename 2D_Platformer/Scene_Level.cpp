@@ -53,7 +53,17 @@ void Scene_Level::sAnimation()
 	{
 		m_player->getComponent<CAnimation>().animation.getSprite().setTexture(m_game->assets().getTexture("player_run"));
 	}
-
+	for (auto& e : m_entityManager.getEntities())
+	{
+		if (e->hasComponent<CAnimation>())
+		{
+			auto& Anim = e->getComponent<CAnimation>();
+			if (Anim.animation.hasEnded() && Anim.repeat == false)
+			{
+				e->removeComponent<CAnimation>();
+			}
+		}
+	}
 }
 
 void Scene_Level::sMovement()
@@ -83,7 +93,7 @@ void Scene_Level::sMovement()
 	for (auto& bullet : m_entityManager.getEntities("bullet"))
 	{
 		auto& bulletTransform = bullet->getComponent<CTransform>();
-		bulletTransform.pos.x += 5;
+		bulletTransform.pos.x += bulletTransform.velocity.x;
 	}
 }
 
@@ -156,7 +166,8 @@ void Scene_Level::sCollision()
 			{
 				if (tile->getComponent<CAnimation>().animation.getName() == "rock")
 				{
-					tile->destroy();
+					tile->addComponent<CAnimation>(m_game->assets().getAnimation("explosion"), false);
+					tile->removeComponent<CBoundingBox>();
 					bullet->destroy();
 				}
 				else
@@ -306,14 +317,6 @@ void Scene_Level::sDoAction(const Action& action)
 			m_player->getComponent<CGravity>().gravity = m_playerConfig.GRAVITY;
 
 		}
-		if (action.name() == "SHOOT")
-		{
-			if (m_player->getComponent<CInput>().canShoot)
-			{
-				spawnBullet(m_player);
-				m_player->getComponent<CInput>().canShoot = false;
-			}
-		}
 		if (action.name() == "UP" && m_framesForJump <= m_playerConfig.JUMP)
 		{
 			if (m_player->getComponent<CGravity>().gravity > 0 && m_player->getComponent<CInput>().canJump)
@@ -342,6 +345,14 @@ void Scene_Level::sDoAction(const Action& action)
 				m_player->getComponent<CGravity>().gravity = m_playerConfig.GRAVITY;
 			}
 			m_player->getComponent<CInput>().right = true;
+		}
+		if (action.name() == "SHOOT")
+		{
+			if (m_player->getComponent<CInput>().canShoot)
+			{
+				spawnBullet(m_player);
+				m_player->getComponent<CInput>().canShoot = false;
+			}
 		}
 		if(!m_player->getComponent<CInput>().canJump)
 		{
@@ -480,8 +491,13 @@ void Scene_Level::spawnBullet(std::shared_ptr<Entity> entity)
 	auto pPos = m_player->getComponent<CTransform>().pos;
 	auto bullet = m_entityManager.addEntity("bullet");
 	bullet->addComponent<CAnimation>(m_game->assets().getAnimation("star"), true);
-	bullet->addComponent<CTransform>(Vec2(pPos.x + m_gridSize.x, pPos.y),
-									Vec2(m_playerConfig.SPEED, m_playerConfig.SPEED), Vec2(1, 1), 1);
+	int direction = 1;
+	if (entity->getComponent<CTransform>().scale.x < 0)
+	{
+		direction *= -1;
+	}
+	bullet->addComponent<CTransform>(Vec2(pPos.x + (m_gridSize.x* direction), pPos.y),
+									Vec2(m_playerConfig.SPEED * direction, m_playerConfig.SPEED * direction), Vec2(direction, 1), 1);
 	bullet->addComponent<CBoundingBox>(Vec2(16, 16));
 	bullet->addComponent<CLifespan>(50);
 }
