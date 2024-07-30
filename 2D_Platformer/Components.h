@@ -44,10 +44,10 @@ class CLifespan : public Component
 {
 public:
 	int lifespan = 0;
-	int frameCreated = 0;
+	int remaining = 0;
 	CLifespan() {}
 	CLifespan(int dataTotal)
-		: frameCreated(dataTotal), lifespan(dataTotal) {}
+		: remaining(dataTotal), lifespan(dataTotal) {}
 };
 
 class CInput : public Component

@@ -25,6 +25,7 @@ void Scene_Level::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::A, "LEFT");
 	registerAction(sf::Keyboard::D, "RIGHT");
 	registerAction(sf::Keyboard::R, "RESTART");
+	registerAction(sf::Keyboard::E, "SHOOT");
 
 	m_gridText.setCharacterSize(12);
 	m_gridText.setFont(m_game->assets().getFont("georgia"));
@@ -78,9 +79,11 @@ void Scene_Level::sMovement()
 				playerTransform.scale.x *= -1;
 			}
 		}
-
-		std::cout << m_player->getComponent<CTransform>().pos.x << " " << m_player->getComponent<CTransform>().prevPos.x << "    "
-			<< m_player->getComponent<CTransform>().pos.y << " " << m_player->getComponent<CTransform>().prevPos.y << std::endl;
+	}
+	for (auto& bullet : m_entityManager.getEntities("bullet"))
+	{
+		auto& bulletTransform = bullet->getComponent<CTransform>();
+		bulletTransform.pos.x += 5;
 	}
 }
 
@@ -145,7 +148,7 @@ void Scene_Level::sCollision()
 			
 		}
 	}
-	/*for (auto bullet : m_entityManager.getEntities("bullet"))
+	for (auto& bullet : m_entityManager.getEntities("bullet"))
 	{
 		for (auto tile : m_entityManager.getEntities("tile"))
 		{
@@ -154,10 +157,15 @@ void Scene_Level::sCollision()
 				if (tile->getComponent<CAnimation>().animation.getName() == "rock")
 				{
 					tile->destroy();
+					bullet->destroy();
+				}
+				else
+				{
+					bullet->destroy();
 				}
 			}
 		}
-	}*/
+	}
 }
 
 void Scene_Level::sRender()
@@ -298,6 +306,14 @@ void Scene_Level::sDoAction(const Action& action)
 			m_player->getComponent<CGravity>().gravity = m_playerConfig.GRAVITY;
 
 		}
+		if (action.name() == "SHOOT")
+		{
+			if (m_player->getComponent<CInput>().canShoot)
+			{
+				spawnBullet(m_player);
+				m_player->getComponent<CInput>().canShoot = false;
+			}
+		}
 		if (action.name() == "UP" && m_framesForJump <= m_playerConfig.JUMP)
 		{
 			if (m_player->getComponent<CGravity>().gravity > 0 && m_player->getComponent<CInput>().canJump)
@@ -351,6 +367,10 @@ void Scene_Level::sDoAction(const Action& action)
 		{
 			m_player->getComponent<CInput>().right = false;
 		}
+		if (action.name() == "SHOOT")
+		{
+			m_player->getComponent<CInput>().canShoot = true;
+		}
 	}
 }
 
@@ -360,6 +380,24 @@ void Scene_Level::sDebug()
 
 void Scene_Level::sLifespan()
 {
+	for (auto& e : m_entityManager.getEntities())
+	{
+		if (!e->hasComponent<CLifespan>())
+		{
+			continue;
+		}
+		auto& lifespanE = e->getComponent<CLifespan>();
+		if (lifespanE.remaining > 0)
+		{
+			lifespanE.remaining -= 1;
+			float lifePercentage = float(lifespanE.remaining) / lifespanE.lifespan;
+
+		}
+		if (lifespanE.remaining == 0)
+		{
+			e->destroy();
+		}
+	}
 }
 
 Vec2 Scene_Level::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity)
@@ -439,8 +477,13 @@ void Scene_Level::spawnPlayer()
 
 void Scene_Level::spawnBullet(std::shared_ptr<Entity> entity)
 {
+	auto pPos = m_player->getComponent<CTransform>().pos;
 	auto bullet = m_entityManager.addEntity("bullet");
-	
+	bullet->addComponent<CAnimation>(m_game->assets().getAnimation("star"), true);
+	bullet->addComponent<CTransform>(Vec2(pPos.x + m_gridSize.x, pPos.y),
+									Vec2(m_playerConfig.SPEED, m_playerConfig.SPEED), Vec2(1, 1), 1);
+	bullet->addComponent<CBoundingBox>(Vec2(16, 16));
+	bullet->addComponent<CLifespan>(50);
 }
 
 void Scene_Level::update()

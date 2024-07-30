@@ -1,16 +1,21 @@
 Font         georgia               fonts/georgia.ttf
 
-Texture      player                assets/Meow-Knight_Idle.png
-Texture      player_jump           assets/Meow-Knight_Jump.png
-Texture      player_run            assets/Meow-Knight_Run.png
-Texture      tile_one              assets/tile_one.png
-Texture      tree_one              assets/tree_one.png
-Texture      star              	   assets/star.png
+Texture		player			assets/Meow-Knight_Idle.png
+Texture		player_jump		assets/Meow-Knight_Jump.png
+Texture		player_run		assets/Meow-Knight_Run.png
+Texture		tile_one		assets/tile_one.png
+Texture		tree_one		assets/tree_one.png
+Texture		star			assets/star.png
+Texture	     	rock			assets/rock.png
+Texture	     	bush			assets/bush.png
 
 
-Animation    idle       player         6     	1
-Animation    jump       player_jump    6     	6
-Animation    run        player_run     8     	1
-Animation    tile_one   tile_one       1     	0
-Animation    tree_one   tree_one       1    	0
-Animation    star       star  	       1 	0
+Animation	idle		player		6     	1
+Animation	jump		player_jump	6     	6
+Animation	run		player_run	8     	1
+Animation	tile_one	tile_one	1     	0
+Animation	tree_one	tree_one	1    	0
+Animation	star		star		1 	0
+Animation	rock		rock		1    	0
+Animation	bush		bush		1 	0
+

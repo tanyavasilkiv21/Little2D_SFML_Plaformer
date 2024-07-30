@@ -9,7 +9,7 @@ tile tile_one 7 4
 tile tile_one 8 4
 tile tile_one 8 6
 tile tile_one 9 6
-
+tile rock 10 7
 dec tree_one 4 5
 
 player 0 4 64 64 5 5 5 5
