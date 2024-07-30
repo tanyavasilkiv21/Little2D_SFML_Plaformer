@@ -60,7 +60,6 @@ public:
 	bool shoot = false;
 	bool canShoot = true;
 	bool canJump = true;
-	bool jumping = false;
 	CInput() {}
 };
 
@@ -85,14 +84,15 @@ public :
 enum stateType
 {
 	STAND,
-	AIR
+	AIR,
+	RUN
 };
 
 class CState : public Component
 {
 public: 
 	
-	stateType state = STAND;
+	stateType state = stateType::STAND;
 	CState() {}
 	CState(const stateType dataState)
 		:state(dataState) {}

@@ -1,0 +1,17 @@
+tile tile_one 0 2
+tile tile_one 1 2
+tile tile_one 2 2
+tile tile_one 3 2
+tile tile_one 4 2
+tile tile_one 5 2
+tile tile_one 6 2
+tile tile_one 7 2
+tile tile_one 8 2
+tile tile_one 8 4
+tile tile_one 9 4
+tile tile_one 10 6
+tile tile_one 11 6
+tile tile_one 12 6
+tile tile_one 13 6
+
+player 0 3 64 64 5 5 5 5

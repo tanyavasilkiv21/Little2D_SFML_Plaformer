@@ -10,7 +10,7 @@ void Assets::addTexture(std::string name, std::string path)
 
 void Assets::addAnimation(std::string name, std::string t, int countFrames, int speed)
 {
-	Animation animation(name, getTexture(t), countFrames, 0);
+	Animation animation(name, getTexture(t), countFrames, speed);
 	m_animation[name] = animation;
 }
 

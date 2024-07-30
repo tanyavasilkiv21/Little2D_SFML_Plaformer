@@ -7,6 +7,7 @@ Animation::Animation()
 Animation::Animation(const std::string& name, const sf::Texture& t)
 	:Animation(name, t, 1, 0)
 {
+	m_elapsedTime = sf::Time::Zero;
 }
 
 Animation::Animation(const std::string& name, const sf::Texture& t, size_t frameCount, size_t speed)
@@ -20,12 +21,15 @@ Animation::Animation(const std::string& name, const sf::Texture& t, size_t frame
 
 void Animation::update()
 {
-	if (m_speed > 0)
+	if (m_speed == 0)
 	{
-		std::cout << m_currentFrame % (m_frameCount * m_speed) << std::endl;
-		m_sprite.setTextureRect(sf::IntRect(0, m_currentFrame % (m_frameCount * m_speed) * m_size.y, m_size.x, m_size.y));
+		return;
 	}
-	m_currentFrame++;
+	sf::Time deltaTime = m_clock.restart();
+	m_elapsedTime += deltaTime;
+	float timeAsSecond = m_elapsedTime.asSeconds();
+	m_currentFrame = static_cast<int>((timeAsSecond/m_speed) * static_cast<float>(m_frameCount)) % m_frameCount;
+	m_sprite.setTextureRect(sf::IntRect(0, m_currentFrame * m_size.y, m_size.x, m_size.y));
 }
 
 bool Animation::hasEnded() const

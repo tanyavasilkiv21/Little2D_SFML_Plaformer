@@ -11,6 +11,7 @@ class Scene_Level : public Scene
 protected:
 
 	std::string m_levelPath;
+	std::string m_levelName;
 	std::shared_ptr<Entity> m_player;
 	PlayerConfig m_playerConfig;
 	bool m_drawTextures = true;
@@ -18,9 +19,10 @@ protected:
 	bool m_drawGrid = false;
 	Vec2 m_gridSize = { 64, 64 };
 	sf::Text m_gridText;
+	sf::Text m_scoreText;
 	bool m_jump = false;
 	int m_framesForJump = 0;
-
+	int sc = 0;
 	void init(const std::string& levelPath);
 
 	void onEnd();
@@ -34,7 +36,7 @@ protected:
 	void sDebug();
 	void sLifespan();
 public:
-	Scene_Level(GameEngine* gameEngine, const std::string& levelPath);
+	Scene_Level(GameEngine* gameEngine, const std::string& levelPath, std::string& levelName);
 	void update();
 
 	Vec2 gridToMidPixel(float gridx, float gridY, std::shared_ptr<Entity> entity);

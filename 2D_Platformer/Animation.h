@@ -10,8 +10,11 @@ class Animation
 	size_t m_frameCount = 1;
 	size_t m_currentFrame = 0;
 	size_t m_speed = 0;
+	sf::Time m_elapsedTime;
+	sf::Clock m_clock;
 	Vec2 m_size = { 1, 1 };
 	std::string m_name = "none";
+
 
 public:
 	Animation();

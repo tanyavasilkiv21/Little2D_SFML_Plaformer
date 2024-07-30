@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
-Scene_Level::Scene_Level(GameEngine* gameEngine, const std::string& levelPath)
+Scene_Level::Scene_Level(GameEngine* gameEngine, const std::string& levelPath, std::string& levelName)
 	:Scene(gameEngine), m_levelPath(levelPath)
 {
 	init(m_levelPath);
@@ -24,6 +24,7 @@ void Scene_Level::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::W, "UP");
 	registerAction(sf::Keyboard::A, "LEFT");
 	registerAction(sf::Keyboard::D, "RIGHT");
+	registerAction(sf::Keyboard::R, "RESTART");
 
 	m_gridText.setCharacterSize(12);
 	m_gridText.setFont(m_game->assets().getFont("georgia"));
@@ -47,6 +48,11 @@ void Scene_Level::sAnimation()
 	{
 		m_player->getComponent<CAnimation>().animation.getSprite().setTexture(m_game->assets().getTexture("player"));
 	}
+	if (playerState.state == stateType::RUN)
+	{
+		m_player->getComponent<CAnimation>().animation.getSprite().setTexture(m_game->assets().getTexture("player_run"));
+	}
+
 }
 
 void Scene_Level::sMovement()
@@ -56,16 +62,6 @@ void Scene_Level::sMovement()
 		auto& playerInput = m_player->getComponent<CInput>();
 		auto& playerTransform = m_player->getComponent<CTransform>();
 		playerTransform.pos.y += m_player->getComponent<CGravity>().gravity;
-		
-		if (std::abs(playerTransform.pos.x - playerTransform.prevPos.x) != playerTransform.velocity.x)
-		{
-			playerTransform.prevPos.x = playerTransform.prevPos.x + playerTransform.velocity.x;
-		}
-		if (std::abs(playerTransform.pos.y - playerTransform.prevPos.y) != playerTransform.velocity.y)
-		{
-			playerTransform.prevPos.y = playerTransform.prevPos.y + playerTransform.velocity.y;
-		}
-
 		if (playerInput.right == true)
 		{
 			playerTransform.pos.x += playerTransform.velocity.x;
@@ -74,7 +70,6 @@ void Scene_Level::sMovement()
 				playerTransform.scale.x *= -1;
 			}
 		}
-
 		if (playerInput.left == true)
 		{
 			playerTransform.pos.x -= playerTransform.velocity.x;
@@ -83,6 +78,9 @@ void Scene_Level::sMovement()
 				playerTransform.scale.x *= -1;
 			}
 		}
+
+		std::cout << m_player->getComponent<CTransform>().pos.x << " " << m_player->getComponent<CTransform>().prevPos.x << "    "
+			<< m_player->getComponent<CTransform>().pos.y << " " << m_player->getComponent<CTransform>().prevPos.y << std::endl;
 	}
 }
 
@@ -108,23 +106,35 @@ void Scene_Level::sCollision()
 		{
 			if (physics.GetOverlap(m_player, e).y > 0 && physics.GetOverlap(m_player, e).x > 0)
 			{
+				if (e->getComponent<CAnimation>().animation.getName() == "star")
+				{
+					e->destroy();
+					sc++;
+					playerTransform.pos = playerTransform.prevPos;
+					continue;
+				}
 				
 				if (playerTransform.pos.y < playerTransform.prevPos.y)
 				{
+					
 					playerTransform.pos.y += physics.GetOverlap(m_player, e).y;
 				}
 				else
 				{
 					playerTransform.pos.y -= physics.GetOverlap(m_player, e).y;
 				}
-				
 			}
 			if (physics.GetOverlap(m_player, e).y == 0 || physics.GetOverlap(m_player, e).x == 0)
 			{
 				m_player->getComponent<CState>().state = stateType::STAND;
 				m_player->getComponent<CInput>().canJump = true;
+				if (playerTransform.pos.x != playerTransform.prevPos.x 
+					&& (playerTransform.pos.y == playerTransform.prevPos.y))
+				{
+					m_player->getComponent<CState>().state = stateType::RUN;
+				}
 			}
-			else
+			else if (physics.GetOverlap(m_player, e).y >= 0 || physics.GetOverlap(m_player, e).x >= 0)
 			{
 				if (!m_player->getComponent<CInput>().canJump)
 				{
@@ -132,8 +142,22 @@ void Scene_Level::sCollision()
 				}
 				m_player->getComponent<CInput>().canJump = false;
 			}
+			
 		}
 	}
+	/*for (auto bullet : m_entityManager.getEntities("bullet"))
+	{
+		for (auto tile : m_entityManager.getEntities("tile"))
+		{
+			if (physics.GetOverlap(bullet, tile).y > 0 && physics.GetOverlap(bullet, tile).x > 0)
+			{
+				if (tile->getComponent<CAnimation>().animation.getName() == "rock")
+				{
+					tile->destroy();
+				}
+			}
+		}
+	}*/
 }
 
 void Scene_Level::sRender()
@@ -149,7 +173,7 @@ void Scene_Level::sRender()
 	}
 	// set the viewport of the window to be centered on the player if it's far enough right
 	auto& pPos = m_player->getComponent<CTransform>().pos;
-	m_player->getComponent<CTransform>().prevPos = pPos;
+	m_player->getComponent<CTransform>().prevPos = m_player->getComponent<CTransform>().pos;
 	float windowCenterX = std::max(m_game->window().getSize().x / 2., pPos.x);
 	sf::View view = m_game->window().getView();
 
@@ -265,7 +289,11 @@ void Scene_Level::sDoAction(const Action& action)
 		{ 
 			onEnd(); 
 		}
-		if (m_framesForJump >= 5)
+		if (action.name() == "RESTART")
+		{
+			m_game->changeScene(m_levelName, std::make_shared<Scene_Level>(m_game, m_levelPath, m_levelName), true);
+		}
+		if (m_framesForJump >= m_playerConfig.JUMP)
 		{
 			m_player->getComponent<CGravity>().gravity = m_playerConfig.GRAVITY;
 
@@ -375,6 +403,17 @@ void Scene_Level::loadLevel(const std::string& filename)
 					dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
 					dec->addComponent<CTransform>(gridToMidPixel(x, y, dec), Vec2(0, 0), Vec2(4, 4), 1);
 				}
+				if (pieceOfLevelType == "star")
+				{
+					std::string nameAnim;
+					int x, y;
+					iss >> nameAnim >> x >> y;
+					auto dec = m_entityManager.addEntity(pieceOfLevelType);
+					dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
+					dec->addComponent<CTransform>(gridToMidPixel(x, y, dec), Vec2(0, 0), Vec2(4, 4), 1);
+					dec->addComponent<CBoundingBox>(Vec2(dec->getComponent<CAnimation>().animation.getSize().x * 4,
+						dec->getComponent<CAnimation>().animation.getSize().y * 4));
+				}
 				if (pieceOfLevelType == "player")
 				{
 					iss >> m_playerConfig.X >> m_playerConfig.Y >> m_playerConfig.BX >> m_playerConfig.BY;
@@ -400,6 +439,8 @@ void Scene_Level::spawnPlayer()
 
 void Scene_Level::spawnBullet(std::shared_ptr<Entity> entity)
 {
+	auto bullet = m_entityManager.addEntity("bullet");
+	
 }
 
 void Scene_Level::update()
@@ -408,8 +449,8 @@ void Scene_Level::update()
 	// TODO: implement pause functionality
 
 	sMovement();
-	sLifespan();
 	sCollision();
+	sLifespan();
 	sAnimation();
 	sRender();
 }
