@@ -9,10 +9,8 @@ Vec2 Physics::GetOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
             (b->getComponent<CTransform>().pos.y + b->getComponent<CBoundingBox>().halfsize.y)));
 
     Vec2 overlap;
-    overlap.x = (a->getComponent<CBoundingBox>().size.x / 2) + (b->getComponent<CBoundingBox>().size.x / 2) - delta.x;
-    overlap.y = (a->getComponent<CBoundingBox>().size.y / 2) + (b->getComponent<CBoundingBox>().size.y / 2) - delta.y;
-
-    //std::cout << delta.x << " " << delta.y << std::endl;
+    overlap.x = (a->getComponent<CBoundingBox>().halfsize.x) + (b->getComponent<CBoundingBox>().halfsize.x) - delta.x;
+    overlap.y = (a->getComponent<CBoundingBox>().halfsize.y) + (b->getComponent<CBoundingBox>().halfsize.y) - delta.y;
     return overlap;
 }
 
@@ -24,7 +22,7 @@ Vec2 Physics::GetPreviousOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Enti
             (b->getComponent<CTransform>().prevPos.y + b->getComponent<CBoundingBox>().halfsize.y)));
 
     Vec2 overlap;
-    overlap.x = (a->getComponent<CBoundingBox>().size.x / 2) + (b->getComponent<CBoundingBox>().size.x / 2) - delta.x;
-    overlap.y = (a->getComponent<CBoundingBox>().size.y / 2) + (b->getComponent<CBoundingBox>().size.y / 2) - delta.y;
+    overlap.x = (a->getComponent<CBoundingBox>().halfsize.x) + (b->getComponent<CBoundingBox>().halfsize.x) - delta.x;
+    overlap.y = (a->getComponent<CBoundingBox>().halfsize.y) + (b->getComponent<CBoundingBox>().halfsize.y) - delta.y;
     return overlap;
 }

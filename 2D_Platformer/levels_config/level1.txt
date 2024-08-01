@@ -9,7 +9,17 @@ tile tile_one 7 4
 tile tile_one 8 4
 tile tile_one 8 6
 tile tile_one 9 6
+tile tile_one 10 4
+tile tile_one 11 4
+tile tile_one 12 4
+tile tile_one 13 4
+tile tile_one 14 6
+tile tile_one 15 6
+
 tile rock 10 7
+
+flag flag 15 7
+
 dec tree_one 4 5
 
-player 0 4 64 64 5 5 5 5
+player 0 5 56 64 5 5 5 5
