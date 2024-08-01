@@ -1,7 +1,6 @@
 #include "GameEngine.h"
 #include "Scene_Menu.h"
 #include <iostream>
-#include "Scene_Level.h"
 
 void GameEngine::update()
 {
@@ -31,6 +30,7 @@ void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene
 {
     m_sceneMap[sceneName] = scene;
     m_currentScene = sceneName;
+    //currentScene()->getActionMap().clear();
 }
 
 void GameEngine::quit()

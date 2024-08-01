@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include "GameEngine.h"
 #include "Scene_Level.h"
+#include "Scene_GameOver.h"
 #include <iostream>
 
 Scene_Menu::Scene_Menu(GameEngine* gameEngine)
@@ -73,6 +74,7 @@ void Scene_Menu::sDoAction(const Action& action)
 			case 2:
 				name = "Level3";
 				m_game->changeScene(name, std::make_shared<Scene_Level>(m_game, "levels_config/level3.txt", name));
+				
 				break;
 			}
 		}

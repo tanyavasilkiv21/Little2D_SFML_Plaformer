@@ -2,12 +2,14 @@
 #include "GameEngine.h"
 #include "Physics.h"
 #include "Scene_Menu.h"
+#include "Scene_GameOver.h"
 
 #include <iostream>
 #include <math.h>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+
 Scene_Level::Scene_Level(GameEngine* gameEngine, const std::string& levelPath, std::string& levelName)
 	:Scene(gameEngine), m_levelPath(levelPath)
 {
@@ -30,6 +32,10 @@ void Scene_Level::init(const std::string& levelPath)
 	m_gridText.setCharacterSize(12);
 	m_gridText.setFont(m_game->assets().getFont("georgia"));
 
+	m_scoreText.setCharacterSize(22);
+	m_scoreText.setFont(m_game->assets().getFont("georgia"));
+	m_scoreText.setPosition(sf::Vector2f(0, 0));
+	m_scoreText.setString("Score: " + std::to_string(sc));
 	loadLevel(levelPath);
 }
 
@@ -121,19 +127,24 @@ void Scene_Level::sCollision()
 		if (e->hasComponent<CBoundingBox>() && e != m_player)
 		{
 			auto& eTransform = e->getComponent<CTransform>();
-			if (playerTransform.pos.x + m_gridSize.x > eTransform.pos.x && playerTransform.pos.x - m_gridSize.x < eTransform.pos.x)
+			Vec2 overlap = physics.GetOverlap(m_player, e);
+			if (playerTransform.pos.x  < eTransform.pos.x + m_gridSize.x && playerTransform.pos.x > eTransform.pos.x - m_gridSize.x)
 			{
-				Vec2 overlap = physics.GetOverlap(m_player, e);
+				std::cout << overlap.x << " " << overlap.y << std::endl;
 				if (overlap.y > 0 && overlap.x > 0)
 				{
 					if (e->getComponent<CAnimation>().animation.getName() == "star")
 					{
 						e->destroy();
 						sc++;
+						m_scoreText.setString("Score: " + std::to_string(sc));
 						playerTransform.pos = playerTransform.prevPos;
 						continue;
 					}
-
+					if (e->getComponent<CAnimation>().animation.getName() == "flag")
+					{
+						m_game->changeScene("Scene_GameOver", std::make_shared<Scene_GameOver>(m_game), true);
+					}
 					if (playerTransform.pos.y < playerTransform.prevPos.y)
 					{
 
@@ -154,7 +165,7 @@ void Scene_Level::sCollision()
 						playerState.state = stateType::RUN;
 					}
 				}
-				else if (overlap.y > 0 || overlap.x > 0)
+				else if (overlap.y < 0 && overlap.x < 0)
 				{
 
 					if (!playerInput.canJump)
@@ -204,10 +215,9 @@ void Scene_Level::sRender()
 	auto& pPos = m_player->getComponent<CTransform>().pos;
 	m_player->getComponent<CTransform>().prevPos = m_player->getComponent<CTransform>().pos;
 	float windowCenterX = std::max(m_game->window().getSize().x / 2., pPos.x);
-	sf::View view = m_game->window().getView();
-
-	view.setCenter(windowCenterX, m_game->window().getSize().y - view.getCenter().y);
-	m_game->window().setView(view);
+	sf::View gameView = m_game->window().getView();
+	gameView.setCenter(windowCenterX, gameView.getCenter().y);
+	m_game->window().setView(gameView);
 
 	// draw all Entity textures / animations
 	if (m_drawTextures)
@@ -291,6 +301,8 @@ void Scene_Level::sRender()
 			}
 		}
 	}
+	m_game->window().setView(m_game->window().getDefaultView());
+	m_game->window().draw(m_scoreText);
 	m_game->window().display();
 }
 
@@ -445,6 +457,17 @@ void Scene_Level::loadLevel(const std::string& filename)
 			std::string pieceOfLevelType;
 			if ((iss >> pieceOfLevelType))
 			{
+				if (pieceOfLevelType == "flag")
+				{
+					std::string nameAnim;
+					int x, y;
+					iss >> nameAnim >> x >> y;
+					auto dec = m_entityManager.addEntity(pieceOfLevelType);
+					dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
+					dec->addComponent<CTransform>(gridToMidPixel(x, y, dec), Vec2(0, 0), Vec2(4, 4), 1);
+					dec->addComponent<CBoundingBox>(Vec2(dec->getComponent<CAnimation>().animation.getSize().x * 4,
+						dec->getComponent<CAnimation>().animation.getSize().y * 4));
+				}
 				if (pieceOfLevelType == "tile")
 				{
 					std::string nameAnim;
