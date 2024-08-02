@@ -55,7 +55,9 @@
     <ClCompile Include="Physics.cpp">
       <Filter>cpp</Filter>
     </ClCompile>
-    <ClCompile Include="Scene_GameOver.cpp" />
+    <ClCompile Include="Scene_GameOver.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -121,7 +123,9 @@
     <ClInclude Include="Physics.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="Scene_GameOver.h" />
+    <ClInclude Include="Scene_GameOver.h">
+      <Filter>headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">

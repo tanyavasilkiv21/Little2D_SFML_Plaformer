@@ -24,7 +24,7 @@ protected:
 	int m_framesForJump = 0;
 	int sc = 0;
 	void init(const std::string& levelPath);
-
+	std::shared_ptr<Entity>  playerStaysOnBlock(CTransform playerTransform);
 	void onEnd();
 	//Systems
 	void sAnimation();

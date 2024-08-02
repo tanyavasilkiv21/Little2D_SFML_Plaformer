@@ -108,76 +108,80 @@ void Scene_Level::sEnemySpawner()
 {
 }
 
+std::shared_ptr<Entity> Scene_Level::playerStaysOnBlock(CTransform playerTransform) 
+{
+	for (auto e : m_entityManager.getEntities())
+	{
+		auto& eTransform = e->getComponent<CTransform>();
+		if (e->hasComponent<CBoundingBox>() && e != m_player)
+		{
+			if (std::abs(playerTransform.pos.x - eTransform.pos.x) <= m_gridSize.x
+				&& std::abs(playerTransform.pos.y - eTransform.pos.y) <= m_gridSize.y) {
+				return e;
+			}
+		}
+	}
+	return nullptr;
+}
+
 void Scene_Level::sCollision()
 {
 	Physics physics;
 	auto& playerTransform = m_player->getComponent<CTransform>();
 	auto& playerState = m_player->getComponent<CState>();
 	auto& playerInput = m_player->getComponent<CInput>();
+
 	if (playerTransform.pos.y >= height() || playerTransform.pos.y <= 0)
 	{
 		playerTransform.pos = Vec2(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player));
 	}
-	if ((playerTransform.pos.x - 16 - playerTransform.velocity.x <= 0))
+	if ((playerTransform.pos.x - 32 - playerTransform.velocity.x <= 0))
 	{
 		playerTransform.pos.x += playerTransform.velocity.x;
 	}
-	for (auto e : m_entityManager.getEntities())
+	
+	if (auto e = playerStaysOnBlock(playerTransform))
 	{
-		if (e->hasComponent<CBoundingBox>() && e != m_player)
+		Vec2 overlap = physics.GetOverlap(m_player, e);
+		if (overlap.y > 0 && overlap.x > 0)
 		{
-			auto& eTransform = e->getComponent<CTransform>();
-			Vec2 overlap = physics.GetOverlap(m_player, e);
-			if (playerTransform.pos.x  < eTransform.pos.x + m_gridSize.x && playerTransform.pos.x > eTransform.pos.x - m_gridSize.x)
+			if (e->getComponent<CAnimation>().animation.getName() == "star")
 			{
-				std::cout << overlap.x << " " << overlap.y << std::endl;
-				if (overlap.y > 0 && overlap.x > 0)
-				{
-					if (e->getComponent<CAnimation>().animation.getName() == "star")
-					{
-						e->destroy();
-						sc++;
-						m_scoreText.setString("Score: " + std::to_string(sc));
-						playerTransform.pos = playerTransform.prevPos;
-						continue;
-					}
-					if (e->getComponent<CAnimation>().animation.getName() == "flag")
-					{
-						m_game->changeScene("Scene_GameOver", std::make_shared<Scene_GameOver>(m_game), true);
-					}
-					if (playerTransform.pos.y < playerTransform.prevPos.y)
-					{
-
-						playerTransform.pos.y += overlap.y;
-					}
-					else
-					{
-						playerTransform.pos.y -= overlap.y;
-					}
-				}
-				if (overlap.y == 0 || overlap.x == 0)
-				{
-					playerState.state = stateType::STAND;
-					playerInput.canJump = true;
-					if (playerTransform.pos.x != playerTransform.prevPos.x
-						&& (playerTransform.pos.y == playerTransform.prevPos.y))
-					{
-						playerState.state = stateType::RUN;
-					}
-				}
-				else if (overlap.y < 0 && overlap.x < 0)
-				{
-
-					if (!playerInput.canJump)
-					{
-						playerState.state = stateType::AIR;
-					}
-					playerInput.canJump = false;
-				}
+				e->destroy();
+				sc++;
+				m_scoreText.setString("Score: " + std::to_string(sc));
+				playerTransform.pos = playerTransform.prevPos;
 
 			}
-			
+			if (e->getComponent<CAnimation>().animation.getName() == "flag")
+			{
+				m_game->changeScene("Scene_GameOver", std::make_shared<Scene_GameOver>(m_game), true);
+			}
+			if (playerTransform.pos.y < playerTransform.prevPos.y)
+			{
+				playerTransform.pos.y += overlap.y;
+			}
+			else
+			{
+				playerTransform.pos.y -= overlap.y;
+			}
 		}
+		playerState.state = stateType::STAND;
+		playerInput.canJump = true;
+		if (playerTransform.pos.x != playerTransform.prevPos.x
+			&& (playerTransform.pos.y == playerTransform.prevPos.y))
+		{
+			playerState.state = stateType::RUN;
+
+		}
+	}
+	else 
+	{
+		if (!playerInput.canJump)
+		{
+			playerState.state = stateType::AIR;
+		}
+		playerInput.canJump = false;
 	}
 	for (auto& bullet : m_entityManager.getEntities("bullet"))
 	{
