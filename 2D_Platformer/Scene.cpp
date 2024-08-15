@@ -56,7 +56,7 @@ void Scene::setPaused(bool paused)
 
 Scene::~Scene()
 {
-
+	//delete m_game;
 }
 
 Scene::Scene(GameEngine* gameEngine)

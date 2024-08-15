@@ -7,17 +7,20 @@ tile tile_one 5 0
 tile tile_one 6 0
 tile tile_one 7 0
 tile tile_one 8 0
-tile tile_one 8 2
-tile tile_one 9 2
-tile tile_one 11 2
+tile tile_one 8 1
+tile tile_one 9 1
+tile tile_one 11 1
+tile tile_one 10 1
 tile tile_one 10 2
-tile tile_one 10 4
-tile tile_one 11 4
-tile tile_one 12 4
-tile tile_one 13 4
+tile tile_one 11 2
+tile tile_one 12 2
+tile tile_one 13 2
+tile tile_one 10 3
+tile tile_one 9 3
+
 
 dec tree_one 4 1
 star star 2 2
 
 
-player 0 1 64 64 5 5 5 5
+player 1 10 64 64 5 5 5 5

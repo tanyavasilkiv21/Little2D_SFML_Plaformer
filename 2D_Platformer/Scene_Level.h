@@ -8,6 +8,7 @@ class Scene_Level : public Scene
 		float X, Y, BX, BY, SPEED, MAXSPEED, JUMP, GRAVITY;
 		std::string WEAPON;
 	};
+
 protected:
 
 	std::string m_levelPath;
@@ -24,7 +25,10 @@ protected:
 	int m_framesForJump = 0;
 	int sc = 0;
 	void init(const std::string& levelPath);
-	std::shared_ptr<Entity>  playerStaysOnBlock(CTransform playerTransform);
+	std::shared_ptr<Entity> playerStaysOnBlock(CTransform playerTransform);
+	Vec2 playerIntersectBlock(CTransform playerTransform);
+	std::shared_ptr<Entity> searchIntersectBlock(Vec2 positionForSearch);
+	bool isPlayerRun(CTransform playerTransform);
 	void onEnd();
 	//Systems
 	void sAnimation();

@@ -8,14 +8,14 @@ Vec2 Physics::GetOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
     auto& aBoundingBox = a->getComponent<CBoundingBox>();
     auto& bBoundingBox = b->getComponent<CBoundingBox>();
 
-    Vec2 delta(std::abs((aTransform.pos.x + aBoundingBox.halfsize.x) - (bTransform.pos.x + bBoundingBox.halfsize.x)),
-               std::abs((aTransform.pos.y + aBoundingBox.halfsize.y) - (bTransform.pos.y + bBoundingBox.halfsize.y)));
+    Vec2 delta(std::abs(aTransform.pos.x - bTransform.pos.x),
+        std::abs(aTransform.pos.y - bTransform.pos.y));
 
     Vec2 overlap;
 
-    overlap.x = (aBoundingBox.halfsize.x) + (bBoundingBox.halfsize.x) - delta.x;
-    overlap.y = (aBoundingBox.halfsize.y) + (bBoundingBox.halfsize.y) - delta.y;
-
+    overlap.x = (aBoundingBox.halfsize.x + bBoundingBox.halfsize.x) - delta.x;
+    overlap.y = (aBoundingBox.halfsize.y + bBoundingBox.halfsize.y) - delta.y;
+   
     return overlap;
 }
 
@@ -33,6 +33,6 @@ Vec2 Physics::GetPreviousOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Enti
 
     overlap.x = (aBoundingBox.halfsize.x) + (bBoundingBox.halfsize.x) - delta.x;
     overlap.y = (aBoundingBox.halfsize.y) + (bBoundingBox.halfsize.y) - delta.y;
-
+    
     return overlap;
 }

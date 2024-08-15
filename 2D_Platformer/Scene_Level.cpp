@@ -124,6 +124,57 @@ std::shared_ptr<Entity> Scene_Level::playerStaysOnBlock(CTransform playerTransfo
 	return nullptr;
 }
 
+Vec2 Scene_Level::playerIntersectBlock(CTransform playerTransform)
+{
+	Physics physics;
+	for (auto e : m_entityManager.getEntities())
+	{
+		auto& eTransform = e->getComponent<CTransform>();
+		if (e->hasComponent<CBoundingBox>() && e != m_player)
+		{
+			auto o = physics.GetOverlap(m_player, e);
+			/*if ((o.x < 64 && o.x > 0) && (o.y < 64 && o.y > 0))
+			{
+				return o;
+			}*/
+			if ((/*o.x < 64 &&*/ o.x > 0))
+			{
+				return Vec2(o.x, 0);
+
+			}
+			/*if ((o.y < 64 && o.y > 0))
+			{
+				return Vec2(0, o.y);
+
+			}*/
+		}
+	}
+	return Vec2(0,0);
+}
+
+std::shared_ptr<Entity> Scene_Level::searchIntersectBlock(Vec2 positionForSearch)
+{
+	for (auto e : m_entityManager.getEntities())
+	{
+		auto& eTransform = e->getComponent<CTransform>();
+		if (e->hasComponent<CBoundingBox>() && e != m_player)
+		{
+			if (eTransform.pos == positionForSearch)
+			{
+				return e;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+bool Scene_Level::isPlayerRun(CTransform playerTransform)
+{
+	return playerTransform.pos.x != playerTransform.prevPos.x
+		&& (playerTransform.pos.y == playerTransform.prevPos.y);
+}
+
 void Scene_Level::sCollision()
 {
 	Physics physics;
@@ -135,7 +186,7 @@ void Scene_Level::sCollision()
 	{
 		playerTransform.pos = Vec2(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player));
 	}
-	if ((playerTransform.pos.x - 32 - playerTransform.velocity.x <= 0))
+	if ((playerTransform.pos.x  <= 0))
 	{
 		playerTransform.pos.x += playerTransform.velocity.x;
 	}
@@ -143,28 +194,52 @@ void Scene_Level::sCollision()
 	if (auto e = playerStaysOnBlock(playerTransform))
 	{
 		Vec2 overlap = physics.GetOverlap(m_player, e);
-		if (overlap.y > 0 && overlap.x > 0)
+		if (overlap.y > 0)
 		{
-			if (e->getComponent<CAnimation>().animation.getName() == "star")
+			playerTransform.pos.y = e->getComponent<CTransform>().pos.y - m_gridSize.y;
+		}
+		auto eTransform = e->getComponent<CTransform>();
+		auto leftBlockPosition = Vec2(eTransform.pos.x, eTransform.pos.y - m_gridSize.y);
+		auto rightBlockPosition = Vec2(eTransform.pos.x + m_gridSize.x, eTransform.pos.y - m_gridSize.y);
+		
+		Vec2 leftOverlap(0,0);
+		if (leftBlockPosition.x > 0 && leftBlockPosition.y > 0)
+		{
+			if (auto le = searchIntersectBlock(leftBlockPosition))
 			{
-				e->destroy();
-				sc++;
-				m_scoreText.setString("Score: " + std::to_string(sc));
-				playerTransform.pos = playerTransform.prevPos;
+				leftOverlap = physics.GetOverlap(m_player, le);
+				std::cout << "catch left!\n";
+				if (leftOverlap.x > 0)
+				{
+					playerTransform.pos.x += leftOverlap.x;
+				}
+			}
+		}
+		
+		Vec2 rightOverlap(0, 0);
+		if (auto re = searchIntersectBlock(rightBlockPosition))
+		{
+			rightOverlap = physics.GetOverlap(m_player, re);
+			std::cout << "catch right!\n";
 
-			}
-			if (e->getComponent<CAnimation>().animation.getName() == "flag")
+			if (rightOverlap.x > 0)
 			{
-				m_game->changeScene("Scene_GameOver", std::make_shared<Scene_GameOver>(m_game), true);
+				playerTransform.pos.x -= rightOverlap.x;
 			}
-			if (playerTransform.pos.y < playerTransform.prevPos.y)
-			{
-				playerTransform.pos.y += overlap.y;
-			}
-			else
-			{
-				playerTransform.pos.y -= overlap.y;
-			}
+		}
+		
+
+		if (e->getComponent<CAnimation>().animation.getName() == "star")
+		{
+			e->destroy();
+			sc++;
+			m_scoreText.setString("Score: " + std::to_string(sc));
+			playerTransform.pos = playerTransform.prevPos;
+
+		}
+		if (e->getComponent<CAnimation>().animation.getName() == "flag")
+		{
+			m_game->changeScene("Scene_GameOver", std::make_shared<Scene_GameOver>(m_game), true);
 		}
 		playerState.state = stateType::STAND;
 		playerInput.canJump = true;
@@ -177,6 +252,18 @@ void Scene_Level::sCollision()
 	}
 	else 
 	{
+		auto upBlockPosition = Vec2(playerTransform.pos.x, playerTransform.pos.y - ( m_gridSize.y));
+		Vec2 upOverlap(0, 0);
+		if (auto ue = searchIntersectBlock(upBlockPosition))
+		{
+			upOverlap = physics.GetOverlap(m_player, ue);
+			std::cout << "catch up!\n";
+			if (upOverlap.y > 0)
+			{
+				playerTransform.pos.y += upOverlap.y;
+			}
+		}
+
 		if (!playerInput.canJump)
 		{
 			playerState.state = stateType::AIR;
@@ -470,7 +557,7 @@ void Scene_Level::loadLevel(const std::string& filename)
 					dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
 					dec->addComponent<CTransform>(gridToMidPixel(x, y, dec), Vec2(0, 0), Vec2(4, 4), 1);
 					dec->addComponent<CBoundingBox>(Vec2(dec->getComponent<CAnimation>().animation.getSize().x * 4,
-						dec->getComponent<CAnimation>().animation.getSize().y * 4));
+						dec->getComponent<CAnimation>().animation.getSize().y * 5));
 				}
 				if (pieceOfLevelType == "tile")
 				{
