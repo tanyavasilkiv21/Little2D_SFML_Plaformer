@@ -86,7 +86,6 @@ void Scene_GameOver::sRender()
     m_game->window().clear(sf::Color(35, 17, 20));
     m_game->window().draw(m_title);
     m_game->window().draw(m_describe);
-    std::cout << m_selectedItemIndex <<"\n";
     for (int i = 0; i < 2; ++i) {
         m_game->window().draw(m_menu[i]);
     }

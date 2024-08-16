@@ -20,7 +20,7 @@ tile tile_one 9 3
 
 
 dec tree_one 4 1
-star star 2 2
+star star 2 1
 
 
 player 1 10 64 64 5 5 5 5
