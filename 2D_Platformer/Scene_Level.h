@@ -21,6 +21,14 @@ protected:
 	Vec2 m_gridSize = { 64, 64 };
 	sf::Text m_gridText;
 	sf::Text m_scoreText;
+
+	sf::Texture backgroundTexture;
+	sf::Texture midgroundTexture;
+	sf::Texture foregroundTexture;
+	float m_backgroundSpeed = 0.05f;
+	float m_midgroundSpeed = 0.25f;
+	float m_foregroundSpeed = 0.5f;
+
 	bool m_jump = false;
 	int m_framesForJump = 0;
 	int sc = 0;

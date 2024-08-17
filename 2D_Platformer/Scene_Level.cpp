@@ -114,10 +114,7 @@ std::shared_ptr<Entity> Scene_Level::searchIntersectBlock(Vec2 positionForSearch
 	{
 		auto& eTransform = e->getComponent<CTransform>();
 		auto eAnimationName = e->getComponent<CAnimation>().animation.getName();
-		if (eAnimationName == "flag")
-		{
-			std::cout << eTransform.pos.x << " " << eTransform.pos.y << std::endl;
-		}
+		
 		if (e->hasComponent<CBoundingBox>() && e != m_player)
 		{
 			if (eTransform.pos == positionForSearch)
@@ -146,6 +143,10 @@ void Scene_Level::checkConditionsForBlock(std::shared_ptr<Entity> entity, CTrans
 		playerTransform.pos = playerTransform.prevPos;
 
 	}
+	if (eAnimationName == "water" || eAnimationName == "lava")
+	{
+		playerTransform.pos = Vec2(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player));
+	}
 }
 
 bool Scene_Level::isPlayerRun(CTransform playerTransform)
@@ -160,7 +161,6 @@ void Scene_Level::sCollision()
 	auto& playerTransform = m_player->getComponent<CTransform>();
 	auto& playerState = m_player->getComponent<CState>();
 	auto& playerInput = m_player->getComponent<CInput>();
-	std::cout << "p: " << playerTransform.pos.x << " " << playerTransform.pos.y << std::endl;
 	if (playerTransform.pos.y >= height() || playerTransform.pos.y <= 0)
 	{
 		playerTransform.pos = Vec2(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player));
@@ -169,6 +169,36 @@ void Scene_Level::sCollision()
 	{
 		playerTransform.pos.x += (playerTransform.velocity.x );
 	}
+
+	auto downBlockPosition = Vec2(((int(playerTransform.pos.x) / int(m_gridSize.x)) * m_gridSize.x) + 32,
+		(((int(playerTransform.pos.y) / int(m_gridSize.y)) + 2) * m_gridSize.y) - 32);
+	if (auto de = searchIntersectBlock(downBlockPosition))
+	{
+		Vec2 downOverlap = physics.GetOverlap(m_player, de);
+		if (downOverlap.y > 0)
+		{
+			playerTransform.pos.y = de->getComponent<CTransform>().pos.y - m_gridSize.y;
+		}
+		checkConditionsForBlock(de, playerTransform);
+
+		playerState.state = stateType::STAND;
+		playerInput.canJump = true;
+		if (playerTransform.pos.x != playerTransform.prevPos.x
+			&& (playerTransform.pos.y == playerTransform.prevPos.y))
+		{
+			playerState.state = stateType::RUN;
+
+		}
+	}
+	else
+	{
+		if (!playerInput.canJump)
+		{
+			playerState.state = stateType::AIR;
+		}
+		playerInput.canJump = false;
+	}
+
 	auto leftBlockPosition = Vec2(((int(playerTransform.pos.x) / int(m_gridSize.x)) * m_gridSize.x) - m_gridSize.x + 32,
 		(((int(playerTransform.pos.y) / int(m_gridSize.y)) + 1) * m_gridSize.y) - 32);
 	if (leftBlockPosition.x > 0)
@@ -206,36 +236,9 @@ void Scene_Level::sCollision()
 			checkConditionsForBlock(ue, playerTransform);
 			playerTransform.pos.y += upOverlap.y;
 		}
+
 	}
 
-	auto downBlockPosition = Vec2(((int(playerTransform.pos.x) / int(m_gridSize.x)) * m_gridSize.x) + 32,
-		(((int(playerTransform.pos.y) / int(m_gridSize.y)) + 2) * m_gridSize.y) - 32) ;
-	if (auto de = searchIntersectBlock(downBlockPosition))
-	{
-		Vec2 downOverlap = physics.GetOverlap(m_player, de);
-		if (downOverlap.y > 0)
-		{
-			playerTransform.pos.y = de->getComponent<CTransform>().pos.y - m_gridSize.y;
-		}
-		checkConditionsForBlock(de, playerTransform);
-	
-		playerState.state = stateType::STAND;
-		playerInput.canJump = true;
-		if (playerTransform.pos.x != playerTransform.prevPos.x
-			&& (playerTransform.pos.y == playerTransform.prevPos.y))
-		{
-			playerState.state = stateType::RUN;
-
-		}
-	}
-	else 
-	{
-		if (!playerInput.canJump)
-		{
-			playerState.state = stateType::AIR;
-		}
-		playerInput.canJump = false;
-	}
 	for (auto& bullet : m_entityManager.getEntities("bullet"))
 	{
 		for (auto tile : m_entityManager.getEntities("tile"))
@@ -259,7 +262,7 @@ void Scene_Level::sCollision()
 
 void Scene_Level::sRender()
 {
-	// color the background darker so you know that the game is paused
+	
 	if (m_paused)
 	{
 		m_game->window().clear(sf::Color(100, 100, 255));
@@ -268,13 +271,54 @@ void Scene_Level::sRender()
 	{
 		m_game->window().clear(sf::Color(30, 50, 150));
 	}
-	// set the viewport of the window to be centered on the player if it's far enough right
+
+	// Set the viewport of the window to be centered on the player if it's far enough right
 	auto& pPos = m_player->getComponent<CTransform>().pos;
 	m_player->getComponent<CTransform>().prevPos = m_player->getComponent<CTransform>().pos;
 	float windowCenterX = std::max(m_game->window().getSize().x / 2., pPos.x);
 	sf::View gameView = m_game->window().getView();
 	gameView.setCenter(windowCenterX, gameView.getCenter().y);
 	m_game->window().setView(gameView);
+
+	sf::Sprite backgroundSprite(backgroundTexture);
+	sf::Sprite midgroundSprite(midgroundTexture);
+	sf::Sprite foregroundSprite(foregroundTexture);
+
+	// Get texture sizes
+	sf::Vector2u backgroundSize = backgroundTexture.getSize();
+	sf::Vector2u midgroundSize = midgroundTexture.getSize();
+	sf::Vector2u foregroundSize = foregroundTexture.getSize();
+
+	// Calculate offsets for parallax effect
+	float backgroundOffsetX = fmod(pPos.x * m_backgroundSpeed, backgroundSize.x);
+	float midgroundOffsetX = fmod(pPos.x * m_midgroundSpeed, midgroundSize.x);
+	float foregroundOffsetX = fmod(pPos.x * m_foregroundSpeed, foregroundSize.x);
+
+	
+	// Draw background layers with horizontal looping
+	for (float x = -backgroundOffsetX; x < m_game->window().getSize().x; x += backgroundSize.x)
+	{
+		backgroundSprite.setPosition(x, 0);
+		m_game->window().draw(backgroundSprite);
+		backgroundSprite.setPosition(x + backgroundSize.x, 0);
+		m_game->window().draw(backgroundSprite);
+	}
+
+	for (float x = -midgroundOffsetX; x < m_game->window().getSize().x; x += midgroundSize.x)
+	{
+		midgroundSprite.setPosition(x, 0);
+		m_game->window().draw(midgroundSprite);
+		midgroundSprite.setPosition(x + midgroundSize.x, 0);
+		m_game->window().draw(midgroundSprite);
+	}
+
+	for (float x = -foregroundOffsetX; x < m_game->window().getSize().x; x += foregroundSize.x)
+	{
+		foregroundSprite.setPosition(x, 0);
+		m_game->window().draw(foregroundSprite);
+		foregroundSprite.setPosition(x + foregroundSize.x, 0);
+		m_game->window().draw(foregroundSprite);
+	}
 
 	// draw all Entity textures / animations
 	if (m_drawTextures)
@@ -568,6 +612,9 @@ void Scene_Level::loadLevel(const std::string& filename)
 			}
 		}
 	}
+	backgroundTexture.loadFromFile("assets/background.png");
+	midgroundTexture.loadFromFile("assets/midground.png");
+	foregroundTexture.loadFromFile("assets/foreground.png");
 	spawnPlayer();
 }
 

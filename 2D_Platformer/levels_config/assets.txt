@@ -10,7 +10,10 @@ Texture	     	rock			assets/rock.png
 Texture	     	bush			assets/bush.png
 Texture	     	explosion		assets/explosion.png
 Texture	     	flag			assets/flag.png
-
+Texture	     	water			assets/water_tile.png
+Texture	     	water_dec 		assets/water_dec.png
+Texture	     	lava			assets/lava_tile.png
+Texture	     	lava_dec 		assets/lava_dec.png
 
 
 Animation	idle		player		6     	1
@@ -23,5 +26,10 @@ Animation	rock		rock		1    	0
 Animation	bush		bush		1 	0
 Animation	explosion	explosion	5 	1
 Animation	flag		flag		5 	1
+Animation	water		water		4 	1
+Animation	water_dec	water_dec	2 	1
+Animation	lava		lava		4 	1
+Animation	lava_dec	lava_dec	2 	1
+
 
 

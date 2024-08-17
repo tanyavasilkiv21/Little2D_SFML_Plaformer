@@ -9,18 +9,27 @@ tile tile_one 7 0
 tile tile_one 8 0
 tile tile_one 8 1
 tile tile_one 9 1
-tile tile_one 11 1
-tile tile_one 10 1
-tile tile_one 10 2
-tile tile_one 11 2
-tile tile_one 12 2
-tile tile_one 13 2
-tile tile_one 10 3
-tile tile_one 9 3
-
-
-dec tree_one 4 1
-star star 2 1
-
+tile tile_one 10 0
+tile tile_one 11 0
+tile tile_one 12 0
+tile tile_one 13 0
+tile tile_one 14 0
+tile tile_one 15 0
+tile tile_one 16 0
+tile tile_one 17 0
+tile tile_one 18 0
+tile tile_one 18 1
+tile tile_one 19 1
+tile tile_one 20 0
+tile tile_one 21 0
+tile tile_one 22 0
+tile tile_one 23 0
+tile tile_one 24 0
+tile tile_one 25 0
+tile tile_one 26 0
+tile tile_one 27 0
+tile tile_one 28 0
+tile tile_one 28 1
+tile tile_one 29 1
 
 player 1 10 64 64 5 5 5 5
