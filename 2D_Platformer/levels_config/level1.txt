@@ -1,4 +1,3 @@
-flag flag 15 7
 
 dec tree_one 4 5
 
@@ -33,7 +32,6 @@ tile tile_one 17 6
 
 tile rock 10 7
 
+flag flag 3 6
 
-
-
-player 0 5 64 64 5 5 5 5
+player 0 6 56 64 5 5 5 5

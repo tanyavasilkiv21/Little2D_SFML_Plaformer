@@ -113,6 +113,11 @@ std::shared_ptr<Entity> Scene_Level::searchIntersectBlock(Vec2 positionForSearch
 	for (auto e : m_entityManager.getEntities())
 	{
 		auto& eTransform = e->getComponent<CTransform>();
+		auto eAnimationName = e->getComponent<CAnimation>().animation.getName();
+		if (eAnimationName == "flag")
+		{
+			std::cout << eTransform.pos.x << " " << eTransform.pos.y << std::endl;
+		}
 		if (e->hasComponent<CBoundingBox>() && e != m_player)
 		{
 			if (eTransform.pos == positionForSearch)
@@ -155,14 +160,14 @@ void Scene_Level::sCollision()
 	auto& playerTransform = m_player->getComponent<CTransform>();
 	auto& playerState = m_player->getComponent<CState>();
 	auto& playerInput = m_player->getComponent<CInput>();
-
+	std::cout << "p: " << playerTransform.pos.x << " " << playerTransform.pos.y << std::endl;
 	if (playerTransform.pos.y >= height() || playerTransform.pos.y <= 0)
 	{
 		playerTransform.pos = Vec2(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player));
 	}
-	if ((playerTransform.pos.x  <= 0))
+	if ((playerTransform.pos.x - 32 <= 0))
 	{
-		playerTransform.pos.x += playerTransform.velocity.x;
+		playerTransform.pos.x += (playerTransform.velocity.x );
 	}
 	auto leftBlockPosition = Vec2(((int(playerTransform.pos.x) / int(m_gridSize.x)) * m_gridSize.x) - m_gridSize.x + 32,
 		(((int(playerTransform.pos.y) / int(m_gridSize.y)) + 1) * m_gridSize.y) - 32);
@@ -203,7 +208,7 @@ void Scene_Level::sCollision()
 		}
 	}
 
-	auto downBlockPosition = Vec2(((int(playerTransform.pos.x) / int(m_gridSize.x)) * m_gridSize.x) +32,
+	auto downBlockPosition = Vec2(((int(playerTransform.pos.x) / int(m_gridSize.x)) * m_gridSize.x) + 32,
 		(((int(playerTransform.pos.y) / int(m_gridSize.y)) + 2) * m_gridSize.y) - 32) ;
 	if (auto de = searchIntersectBlock(downBlockPosition))
 	{
@@ -491,7 +496,8 @@ Vec2 Scene_Level::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entit
 {
 	auto size = entity->getComponent<CAnimation>().animation.getSprite().getOrigin();
 	auto qOfCellsY = m_game->window().getSize().y / m_gridSize.y;
-	return Vec2((gridX * m_gridSize.x) + (size.x * 4), ((qOfCellsY - gridY) * m_gridSize.y) - (size.y * 4));
+	auto scale = entity->getComponent <CTransform>().scale;
+	return Vec2((gridX * m_gridSize.x) + (size.x * scale.x), ((qOfCellsY - gridY) * m_gridSize.y) - (size.y * scale.y));
 }
 
 void Scene_Level::loadLevel(const std::string& filename)
@@ -516,9 +522,10 @@ void Scene_Level::loadLevel(const std::string& filename)
 					iss >> nameAnim >> x >> y;
 					auto dec = m_entityManager.addEntity(pieceOfLevelType);
 					dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
-					dec->addComponent<CTransform>(gridToMidPixel(x, y, dec), Vec2(0, 0), Vec2(4, 4), 1);
-					dec->addComponent<CBoundingBox>(Vec2(dec->getComponent<CAnimation>().animation.getSize().x * 4,
-						dec->getComponent<CAnimation>().animation.getSize().y * 4));
+					dec->addComponent<CTransform>(Vec2(0,0), Vec2(0, 0), Vec2(1, 1), 1);
+					dec->getComponent<CTransform>().pos = gridToMidPixel(x, y, dec);
+					dec->addComponent<CBoundingBox>(Vec2(dec->getComponent<CAnimation>().animation.getSize().x * dec->getComponent<CTransform>().scale.x,
+						dec->getComponent<CAnimation>().animation.getSize().y * dec->getComponent<CTransform>().scale.y));
 				}
 				if (pieceOfLevelType == "tile")
 				{
@@ -527,7 +534,8 @@ void Scene_Level::loadLevel(const std::string& filename)
 					iss >> nameAnim >> x >> y;
 					auto tile = m_entityManager.addEntity(pieceOfLevelType);
 					tile->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
-					tile->addComponent<CTransform>(gridToMidPixel(x, y, tile), Vec2(0, 0), Vec2(4, 4), 1);
+					tile->addComponent<CTransform>(Vec2(0,0), Vec2(0, 0), Vec2(4, 4), 1);
+					tile->getComponent<CTransform>().pos = gridToMidPixel(x, y, tile);
 					tile->addComponent<CBoundingBox>(Vec2(64, 64));
 				}
 				if (pieceOfLevelType == "dec")
@@ -537,7 +545,8 @@ void Scene_Level::loadLevel(const std::string& filename)
 					iss >> nameAnim >> x >> y;
 					auto dec = m_entityManager.addEntity(pieceOfLevelType);
 					dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
-					dec->addComponent<CTransform>(gridToMidPixel(x, y, dec), Vec2(0, 0), Vec2(4, 4), 1);
+					dec->addComponent<CTransform>(Vec2(0, 0), Vec2(0, 0), Vec2(4, 4), 1);
+					dec->getComponent<CTransform>().pos = gridToMidPixel(x, y, dec);
 				}
 				if (pieceOfLevelType == "star")
 				{
@@ -546,7 +555,8 @@ void Scene_Level::loadLevel(const std::string& filename)
 					iss >> nameAnim >> x >> y;
 					auto dec = m_entityManager.addEntity(pieceOfLevelType);
 					dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
-					dec->addComponent<CTransform>(gridToMidPixel(x, y, dec), Vec2(0, 0), Vec2(4, 4), 1);
+					dec->addComponent<CTransform>(Vec2(0,0), Vec2(0, 0), Vec2(4, 4), 1);
+					dec->getComponent<CTransform>().pos = gridToMidPixel(x, y, dec);
 					dec->addComponent<CBoundingBox>(Vec2(dec->getComponent<CAnimation>().animation.getSize().x * 4,
 						dec->getComponent<CAnimation>().animation.getSize().y * 4));
 				}
@@ -565,8 +575,9 @@ void Scene_Level::spawnPlayer()
 {
 	m_player = m_entityManager.addEntity("player");
 	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("idle"), true);
-	m_player->addComponent<CTransform>(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player),
+	m_player->addComponent<CTransform>(Vec2(0,0),
 		Vec2(m_playerConfig.SPEED, m_playerConfig.SPEED), Vec2(4, 4), 1);
+	m_player->getComponent< CTransform>().pos = gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player);
 	m_player->addComponent<CBoundingBox>(Vec2(m_playerConfig.BX, m_playerConfig.BY));
 	m_player->addComponent<CInput>();
 	m_player->addComponent<CGravity>(m_playerConfig.GRAVITY);

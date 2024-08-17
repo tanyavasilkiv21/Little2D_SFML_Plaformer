@@ -4,6 +4,11 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 
+enum AnimationSheetLayout
+{
+	HORIZONTAL = 0,
+	VERTICAL
+};
 class Animation
 {
 	sf::Sprite m_sprite;
@@ -14,7 +19,7 @@ class Animation
 	sf::Clock m_clock;
 	Vec2 m_size = { 1, 1 };
 	std::string m_name = "none";
-
+	AnimationSheetLayout animSheetLayout;
 
 public:
 	Animation();

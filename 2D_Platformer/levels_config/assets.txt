@@ -22,6 +22,6 @@ Animation	star		star		1 	0
 Animation	rock		rock		1    	0
 Animation	bush		bush		1 	0
 Animation	explosion	explosion	5 	1
-Animation	flag		flag		1 	0
+Animation	flag		flag		5 	1
 
 
