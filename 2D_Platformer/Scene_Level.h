@@ -22,12 +22,19 @@ protected:
 	sf::Text m_gridText;
 	sf::Text m_scoreText;
 
-	sf::Texture backgroundTexture;
-	sf::Texture midgroundTexture;
-	sf::Texture foregroundTexture;
-	float m_backgroundSpeed = 0.05f;
-	float m_midgroundSpeed = 0.25f;
-	float m_foregroundSpeed = 0.5f;
+	sf::Color m_colorBackground; 
+
+	sf::Texture m_backgroundTexture;
+	sf::Texture m_midgroundTexture;
+	sf::Texture m_foregroundTexture;
+
+	sf::Sprite m_backgroundSprite;
+	sf::Sprite m_midgroundSprite;
+	sf::Sprite m_foregroundSprite;
+
+	float m_backgroundSpeed;
+	float m_midgroundSpeed;
+	float m_foregroundSpeed;
 
 	bool m_jump = false;
 	int m_framesForJump = 0;
@@ -36,7 +43,7 @@ protected:
 	std::shared_ptr<Entity> searchIntersectBlock(Vec2 positionForSearch);
 	void checkConditionsForBlock(std::shared_ptr<Entity> entity, CTransform& playerTransform);
 	bool isPlayerRun(CTransform playerTransform);
-	void onEnd();
+	
 	//Systems
 	void sAnimation();
 	void sMovement();
@@ -54,5 +61,6 @@ public:
 	void loadLevel(const std::string& filename);
 	void spawnPlayer();
 	void spawnBullet(std::shared_ptr<Entity> entity);
+	void onEnd();
 };
 

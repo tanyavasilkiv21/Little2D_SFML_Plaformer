@@ -1,35 +1,155 @@
-tile tile_one 0 0
-tile tile_one 1 0
-tile tile_one 2 0
-tile tile_one 3 0
-tile tile_one 4 0
-tile tile_one 5 0
-tile tile_one 6 0
-tile tile_one 7 0
-tile tile_one 8 0
-tile tile_one 8 1
-tile tile_one 9 1
-tile tile_one 10 0
-tile tile_one 11 0
-tile tile_one 12 0
-tile tile_one 13 0
-tile tile_one 14 0
-tile tile_one 15 0
-tile tile_one 16 0
-tile tile_one 17 0
-tile tile_one 18 0
-tile tile_one 18 1
-tile tile_one 19 1
-tile tile_one 20 0
-tile tile_one 21 0
-tile tile_one 22 0
-tile tile_one 23 0
-tile tile_one 24 0
-tile tile_one 25 0
-tile tile_one 26 0
-tile tile_one 27 0
-tile tile_one 28 0
-tile tile_one 28 1
-tile tile_one 29 1
+color 125 183 205
 
-player 1 10 64 64 5 5 5 5
+background 		assets/parallaxLevelTwo/back.png	0.005	
+midground 		assets/parallaxLevelTwo/middle.png	0.035
+foreground 		assets/parallaxLevelTwo/near.png	0.05
+
+tile tile_one 	0 	0
+tile tile_one 	1	0
+tile tile_one 	2	0
+tile tile_one 	3	0
+tile tile_one 	4	0
+tile tile_one 	5	0
+tile tile_one 	6	0
+tile tile_one 	12	0
+tile tile_one 	13	0
+tile tile_one 	14	0
+tile tile_one 	15	0
+tile tile_one 	16	0
+tile tile_one 	17	0
+tile tile_one 	18	0
+tile tile_one 	19	0
+tile tile_one 	20	0
+
+tile tile_one 	2	1
+tile tile_one 	3 	1
+tile tile_one 	6 	1
+tile tile_one 	9 	1
+tile tile_one 	12 	1
+
+tile tile_one 	3 	2
+tile tile_one 	4 	2
+tile tile_one 	21	2
+tile tile_one 	22	2
+tile tile_one 	23	2
+tile tile_one 	33 	2
+tile tile_one 	34 	2
+tile tile_one 	35 	2
+
+tile tile_one 	4 	3
+tile tile_one 	5 	3
+tile tile_one 	14 	3
+tile tile_one 	15 	3
+tile tile_one 	16 	3
+tile tile_one 	25	3
+tile tile_one 	26	3
+tile tile_one 	27	3
+
+tile tile_one 	5 	4
+tile tile_one 	6 	4
+tile tile_one 	13 	4
+tile tile_one 	14 	4
+tile tile_one 	29	4
+tile tile_one 	30	4
+tile tile_one 	31	4
+
+tile tile_one 	6 	5
+tile tile_one 	7 	5
+tile tile_one 	8 	5
+tile tile_one 	9 	5
+tile tile_one 	10 	5
+tile tile_one 	11 	5
+tile tile_one 	12 	5
+tile tile_one 	13 	5
+tile tile_one 	33 	5
+tile tile_one 	34 	5
+tile tile_one 	35 	5
+tile tile_one 	36 	5
+
+tile rock 	15 	2
+tile rock 	15 	1
+tile rock 	16 	2
+tile rock 	16 	1
+
+tile water    	6 	0
+tile water    	7 	0
+tile water    	8 	0
+tile water    	9 	0
+tile water    	10 	0
+tile water    	11 	0
+tile water    	12 	0
+tile water    	13 	0
+tile water    	21 	0
+tile water    	22 	0
+tile water    	23 	0
+tile water    	24 	0
+tile water    	25 	0
+tile water    	26 	0
+tile water    	27 	0
+tile water    	28 	0
+tile water    	29 	0
+tile water    	30 	0
+tile water    	31 	0
+tile water    	32 	0
+tile water    	33 	0
+tile water    	34 	0
+tile water    	35 	0
+tile water    	36 	0
+tile water    	37 	0
+tile water    	38 	0
+tile water    	39 	0
+tile water    	40 	0
+tile water    	41 	0
+tile water    	42 	0
+tile water    	43 	0
+tile water    	44 	0
+tile water    	45 	0
+tile water    	46 	0
+
+dec  water_dec 	6	1
+dec  water_dec 	7	1
+dec  water_dec 	8	1
+dec  water_dec 	9	1
+dec  water_dec 	10	1
+dec  water_dec 	11	1
+dec  water_dec 	12	1
+dec  water_dec 	13	1
+dec  water_dec 	21	1
+dec  water_dec 	22	1
+dec  water_dec 	23	1
+dec  water_dec 	24	1
+dec  water_dec 	25	1
+dec  water_dec 	26	1
+dec  water_dec 	27	1
+dec  water_dec 	28	1
+dec  water_dec 	29	1
+dec  water_dec 	30	1
+dec  water_dec 	31	1
+dec  water_dec 	32	1
+dec  water_dec 	33	1
+dec  water_dec 	34	1
+dec  water_dec 	35	1
+dec  water_dec 	36	1
+dec  water_dec 	37	1
+dec  water_dec 	38	1
+dec  water_dec 	39	1
+dec  water_dec 	40	1
+dec  water_dec 	41	1
+dec  water_dec 	42	1
+dec  water_dec 	43	1
+dec  water_dec 	44	1
+dec  water_dec 	45	1
+dec  water_dec 	46	1
+
+dec  bush 	6	6
+dec  bush 	9	6
+dec  bush 	33	6
+
+dec  tree_one	8	6
+dec  tree_one	33	6
+
+flag flag	35 	6
+
+tile coin	6	2
+
+player 1 5 64 64 5 5 5 5

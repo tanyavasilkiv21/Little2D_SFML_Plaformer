@@ -5,7 +5,7 @@ class Scene_GameOver : public Scene
 {
 protected:
 	int m_selectedItemIndex = 0;
-	void onEnd();
+	
 	sf::Font m_font;
 	sf::Text m_title;
 	sf::Text m_describe;
@@ -16,5 +16,6 @@ public:
 	void update();
 	void sDoAction(const Action& action);
 	void sRender();
+	void onEnd();
 };
 

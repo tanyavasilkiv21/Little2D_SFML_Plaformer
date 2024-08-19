@@ -19,7 +19,6 @@ protected:
 	bool m_hasEnded = false;
 	size_t m_currentFrame = 0;
 
-	virtual void onEnd() = 0;
 	void setPaused(bool paused);
 
 public: 
@@ -43,5 +42,7 @@ public:
 	bool hasEnded() const;
 	const ActionMap& getActionMap() const;
 	void drawLine(const Vec2& p1, const Vec2& p2);
+
+	virtual void onEnd() = 0;
 };
 

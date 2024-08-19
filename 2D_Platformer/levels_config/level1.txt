@@ -1,73 +1,8 @@
+color 132 169 140
 
-dec 	tree_one 	4 5
+background 		assets/parallaxLevelOne/back.png	0.005
+midground 		assets/parallaxLevelOne/middle.png	0.035	
+foreground 		assets/parallaxLevelOne/near.png	0.05
 
-tile 	tile_one 	0 4
-tile	tile_one 	1 4
-tile 	tile_one 	2 4
-tile 	tile_one 	3 4
-tile 	tile_one 	3 6
-tile 	tile_one 	7 6
-
-tile 	water    	0 0
-tile 	water    	1 0
-tile 	water    	2 0
-tile 	water   	3 0
-tile 	water    	4 0
-tile 	water    	5 0
-tile 	water    	6 0
-tile 	water   	7 0
-tile 	water   	8 0
-tile 	water    	9 0
-tile 	water    	10 0
-tile 	water    	11 0
-tile 	water   	12 0
-
-dec  	water_dec 	0 1
-dec  	water_dec 	1 1
-dec  	water_dec 	2 1
-dec  	water_dec 	3 1
-dec  	water_dec 	4 1
-dec  	water_dec 	5 1
-dec  	water_dec 	6 1
-dec  	water_dec 	7 1
-dec  	water_dec 	8 1
-dec  	water_dec 	9 1
-dec  	water_dec 	10 1
-dec  	water_dec 	11 1
-dec  	water_dec 	12 1
-
-tile	lava		4 5
-tile	lava		5 5
-tile	lava		6 5
-
-dec  	lava_dec 	4 6
-dec  	lava_dec 	5 6
-dec  	lava_dec 	6 6
-
-tile 	tile_one	3 5
-
-tile 	tile_one 	4 4
-tile 	tile_one 	5 4
-tile 	tile_one 	6 4
-tile 	tile_one 	7 4
-tile 	tile_one 	7 5
-
-tile 	tile_one 	8 4
-tile 	tile_one 	8 6
-tile 	tile_one 	8 5
-
-tile 	tile_one 	9 6
-tile 	tile_one 	10 4
-tile 	tile_one 	11 4
-tile 	tile_one 	12 4
-tile 	tile_one 	13 4
-tile 	tile_one 	14 6
-tile 	tile_one 	15 6
-tile 	tile_one 	16 6
-tile 	tile_one 	17 6
-
-tile 	rock 		10 7
-
-flag 	flag 		13 5
 
 player 	0 6 56 64 5 5 5 5

@@ -32,7 +32,7 @@ size_t Scene::currentFrame() const
 
 bool Scene::hasEnded() const
 {
-	return false;
+	return m_hasEnded;
 }
 
 const ActionMap& Scene::getActionMap() const

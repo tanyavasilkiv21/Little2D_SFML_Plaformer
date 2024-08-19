@@ -1,3 +1,9 @@
+color 132 169 140
+
+background 		assets/parallaxLevelThree/back.png	0.005
+midground 		assets/parallaxLevelThree/middle.png	0.035
+foreground 		assets/parallaxLevelThree/near.png	0.05
+
 tile tile_one 0 2
 tile tile_one 1 2
 tile tile_one 2 2

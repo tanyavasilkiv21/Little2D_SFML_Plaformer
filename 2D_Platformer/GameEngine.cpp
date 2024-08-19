@@ -28,9 +28,20 @@ std::shared_ptr<Scene>& GameEngine::currentScene()
 
 void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)
 {
+    auto it = m_sceneMap.find(sceneName);
+    if (it != m_sceneMap.end())
+    {
+        m_currentScene = sceneName;
+        return; 
+    }
+
     m_sceneMap[sceneName] = scene;
+
+    if (endCurrentScene && m_sceneMap[m_currentScene])
+    {
+        m_sceneMap[m_currentScene]->onEnd();
+    }
     m_currentScene = sceneName;
-    //currentScene()->getActionMap().clear();
 }
 
 void GameEngine::quit()

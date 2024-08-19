@@ -41,6 +41,7 @@ void Scene_Level::init(const std::string& levelPath)
 
 void Scene_Level::onEnd()
 {
+
 	m_game->changeScene("Scene_Menu", std::make_shared<Scene_Menu>(m_game), true);
 }
 
@@ -135,17 +136,17 @@ void Scene_Level::checkConditionsForBlock(std::shared_ptr<Entity> entity, CTrans
 	{
 		m_game->changeScene("Scene_GameOver", std::make_shared<Scene_GameOver>(m_game), true);
 	}
-	if (eAnimationName == "star")
+	if (eAnimationName == "coin")
 	{
 		entity->destroy();
-		sc++;
+		sc+= 100;
 		m_scoreText.setString("Score: " + std::to_string(sc));
 		playerTransform.pos = playerTransform.prevPos;
 
 	}
 	if (eAnimationName == "water" || eAnimationName == "lava")
 	{
-		playerTransform.pos = Vec2(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player));
+		m_game->changeScene(m_levelName, std::make_shared<Scene_Level>(m_game, m_levelPath, m_levelName), true);
 	}
 }
 
@@ -269,7 +270,7 @@ void Scene_Level::sRender()
 	}
 	else
 	{
-		m_game->window().clear(sf::Color(30, 50, 150));
+		m_game->window().clear(m_colorBackground);
 	}
 
 	// Set the viewport of the window to be centered on the player if it's far enough right
@@ -280,49 +281,40 @@ void Scene_Level::sRender()
 	gameView.setCenter(windowCenterX, gameView.getCenter().y);
 	m_game->window().setView(gameView);
 
-	sf::Sprite backgroundSprite(backgroundTexture);
-	sf::Sprite midgroundSprite(midgroundTexture);
-	sf::Sprite foregroundSprite(foregroundTexture);
-
-	// Get texture sizes
-	sf::Vector2u backgroundSize = backgroundTexture.getSize();
-	sf::Vector2u midgroundSize = midgroundTexture.getSize();
-	sf::Vector2u foregroundSize = foregroundTexture.getSize();
-
-	// Calculate offsets for parallax effect
-	float backgroundOffsetX = fmod(pPos.x * m_backgroundSpeed, backgroundSize.x);
-	float midgroundOffsetX = fmod(pPos.x * m_midgroundSpeed, midgroundSize.x);
-	float foregroundOffsetX = fmod(pPos.x * m_foregroundSpeed, foregroundSize.x);
-
-	
-	// Draw background layers with horizontal looping
-	for (float x = -backgroundOffsetX; x < m_game->window().getSize().x; x += backgroundSize.x)
-	{
-		backgroundSprite.setPosition(x, 0);
-		m_game->window().draw(backgroundSprite);
-		backgroundSprite.setPosition(x + backgroundSize.x, 0);
-		m_game->window().draw(backgroundSprite);
-	}
-
-	for (float x = -midgroundOffsetX; x < m_game->window().getSize().x; x += midgroundSize.x)
-	{
-		midgroundSprite.setPosition(x, 0);
-		m_game->window().draw(midgroundSprite);
-		midgroundSprite.setPosition(x + midgroundSize.x, 0);
-		m_game->window().draw(midgroundSprite);
-	}
-
-	for (float x = -foregroundOffsetX; x < m_game->window().getSize().x; x += foregroundSize.x)
-	{
-		foregroundSprite.setPosition(x, 0);
-		m_game->window().draw(foregroundSprite);
-		foregroundSprite.setPosition(x + foregroundSize.x, 0);
-		m_game->window().draw(foregroundSprite);
-	}
-
 	// draw all Entity textures / animations
 	if (m_drawTextures)
 	{
+		// Parallax
+		sf::Vector2u backgroundSize = m_backgroundTexture.getSize();
+		sf::Vector2u midgroundSize = m_midgroundTexture.getSize();
+		sf::Vector2u foregroundSize = m_foregroundTexture.getSize();
+		float backgroundOffsetX = fmod(windowCenterX * m_backgroundSpeed, backgroundSize.x);
+		float midgroundOffsetX = fmod(windowCenterX * m_midgroundSpeed, midgroundSize.x);
+		float foregroundOffsetX = fmod(windowCenterX * m_foregroundSpeed, foregroundSize.x);
+		// Draw background layers with horizontal looping
+		for (float x = -backgroundOffsetX; x < m_game->window().getSize().x; x += backgroundSize.x)
+		{
+			m_backgroundSprite.setPosition(x, 0);
+			m_game->window().draw(m_backgroundSprite);
+			m_backgroundSprite.setPosition(x + backgroundSize.x, 0);
+			m_game->window().draw(m_backgroundSprite);
+		}
+
+		for (float x = -midgroundOffsetX; x < m_game->window().getSize().x; x += midgroundSize.x)
+		{
+			m_midgroundSprite.setPosition(x, 0);
+			m_game->window().draw(m_midgroundSprite);
+			m_midgroundSprite.setPosition(x + midgroundSize.x, 0);
+			m_game->window().draw(m_midgroundSprite);
+		}
+
+		for (float x = -foregroundOffsetX; x < m_game->window().getSize().x; x += foregroundSize.x)
+		{
+			m_foregroundSprite.setPosition(x, 0);
+			m_game->window().draw(m_foregroundSprite);
+			m_foregroundSprite.setPosition(x + foregroundSize.x, 0);
+			m_game->window().draw(m_foregroundSprite);
+		}
 		for (auto e : m_entityManager.getEntities())
 		{
 			if (m_player == e)
@@ -354,6 +346,8 @@ void Scene_Level::sRender()
 			animation.update();
 			m_game->window().draw(animation.getSprite());
 		}
+
+		
 	}
 	if (m_drawCollision)
 	{
@@ -592,7 +586,7 @@ void Scene_Level::loadLevel(const std::string& filename)
 					dec->addComponent<CTransform>(Vec2(0, 0), Vec2(0, 0), Vec2(4, 4), 1);
 					dec->getComponent<CTransform>().pos = gridToMidPixel(x, y, dec);
 				}
-				if (pieceOfLevelType == "star")
+				if (pieceOfLevelType == "coin")
 				{
 					std::string nameAnim;
 					int x, y;
@@ -609,12 +603,47 @@ void Scene_Level::loadLevel(const std::string& filename)
 					iss >> m_playerConfig.X >> m_playerConfig.Y >> m_playerConfig.BX >> m_playerConfig.BY;
 					iss >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.JUMP >> m_playerConfig.GRAVITY;
 				}
+				if (pieceOfLevelType == "background")
+				{
+					std::string textureFileName;
+					float speed;
+					iss >> textureFileName >> speed;
+					m_backgroundSpeed = speed;
+					m_backgroundTexture.loadFromFile(textureFileName);
+					m_backgroundSprite.setTexture(m_backgroundTexture);
+					
+
+
+				}
+				if (pieceOfLevelType == "midground")
+				{
+					std::string textureFileName;
+					float speed;
+					iss >> textureFileName >> speed;
+					m_midgroundSpeed = speed;
+					m_midgroundTexture.loadFromFile(textureFileName);
+					m_midgroundSprite.setTexture(m_midgroundTexture);
+					
+				}
+				if (pieceOfLevelType == "foreground")
+				{
+					std::string textureFileName;
+					float speed;
+					iss >> textureFileName >> speed;
+					m_foregroundSpeed = speed;
+					sf::Texture texture;
+					m_foregroundTexture.loadFromFile(textureFileName);
+					m_foregroundSprite.setTexture(m_foregroundTexture);
+				}
+				if (pieceOfLevelType == "color")
+				{
+					int r = 0, g = 0, b = 0;
+					iss >> r >> g >> b;
+					m_colorBackground = sf::Color(r, g, b);
+				}
 			}
 		}
 	}
-	backgroundTexture.loadFromFile("assets/background.png");
-	midgroundTexture.loadFromFile("assets/midground.png");
-	foregroundTexture.loadFromFile("assets/foreground.png");
 	spawnPlayer();
 }
 
