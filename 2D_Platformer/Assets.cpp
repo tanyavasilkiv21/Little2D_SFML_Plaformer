@@ -63,10 +63,10 @@ const sf::Font& Assets::getFont(std::string name) const
 void Assets::loadFromFile(const std::string& path)
 {
 	std::ifstream fileIn(path);
-	if (fileIn.is_open())
+	if (fileIn.is_open() )
 	{
 		std::string line;
-		while (std::getline(fileIn, line))
+		while (fileIn.peek() != EOF && std::getline(fileIn, line) )
 		{
 			std::istringstream iss(line);
 			std::string assetType;
@@ -97,5 +97,6 @@ void Assets::loadFromFile(const std::string& path)
 				}
 			}
 		}
+		fileIn.close();
 	}
 }

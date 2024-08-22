@@ -50,13 +50,9 @@ void Scene::drawLine(const Vec2& p1, const Vec2& p2)
 
 }
 
+
 void Scene::setPaused(bool paused)
 {
-}
-
-Scene::~Scene()
-{
-	//delete m_game;
 }
 
 Scene::Scene(GameEngine* gameEngine)

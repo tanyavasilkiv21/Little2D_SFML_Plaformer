@@ -66,3 +66,9 @@ const EntityMap& EntityManager::getEntityMap()
 {
 	return m_entityMap;
 }
+
+void EntityManager::clear()
+{
+	m_entities.clear();
+	m_entityMap.clear();
+}

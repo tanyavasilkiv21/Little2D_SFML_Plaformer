@@ -10,9 +10,11 @@
 #include <fstream>
 #include <sstream>
 
-Scene_Level::Scene_Level(GameEngine* gameEngine, const std::string& levelPath, std::string& levelName)
-	:Scene(gameEngine), m_levelPath(levelPath)
+Scene_Level::Scene_Level(GameEngine* gameEngine, const std::string levelPath, std::string levelName)
+	:Scene(gameEngine), m_levelPath(levelPath), m_levelName(levelName)
 {
+	std::cout << "Level Path: " << levelPath << std::endl;
+	std::cout << "Level Name: " << levelName << std::endl;
 	init(m_levelPath);
 }
 
@@ -41,26 +43,40 @@ void Scene_Level::init(const std::string& levelPath)
 
 void Scene_Level::onEnd()
 {
+	m_player.reset();
+    m_actionMap.clear();
+    m_entityManager.clear();
 
-	m_game->changeScene("Scene_Menu", std::make_shared<Scene_Menu>(m_game), true);
+    // Clear textures and sprites if needed
+    m_backgroundTexture = sf::Texture();
+    m_midgroundTexture = sf::Texture();
+    m_foregroundTexture = sf::Texture();
+    m_backgroundSprite = sf::Sprite();
+    m_midgroundSprite = sf::Sprite();
+    m_foregroundSprite = sf::Sprite();
 }
 
 void Scene_Level::sAnimation()
 {
-	auto& playerState = m_player->getComponent<CState>();
-	auto& playerAnimationSprite = m_player->getComponent<CAnimation>().animation.getSprite();
-	if (playerState.state == stateType::AIR)
+	if (m_player->hasComponent <CState>())
 	{
-		playerAnimationSprite.setTexture(m_game->assets().getTexture("player_jump"));
+		auto& playerState = m_player->getComponent<CState>();
+		auto& playerAnimationSprite = m_player->getComponent<CAnimation>().animation.getSprite();
+
+		if (playerState.state == stateType::AIR)
+		{
+			playerAnimationSprite.setTexture(m_game->assets().getTexture("player_jump"));
+		}
+		if (playerState.state == stateType::STAND)
+		{
+			playerAnimationSprite.setTexture(m_game->assets().getTexture("player"));
+		}
+		if (playerState.state == stateType::RUN)
+		{
+			playerAnimationSprite.setTexture(m_game->assets().getTexture("player_run"));
+		}
 	}
-	if (playerState.state == stateType::STAND)
-	{
-		playerAnimationSprite.setTexture(m_game->assets().getTexture("player"));
-	}
-	if (playerState.state == stateType::RUN)
-	{
-		playerAnimationSprite.setTexture(m_game->assets().getTexture("player_run"));
-	}
+	
 	for (auto& e : m_entityManager.getEntities())
 	{
 		if (e->hasComponent<CAnimation>())
@@ -134,7 +150,8 @@ void Scene_Level::checkConditionsForBlock(std::shared_ptr<Entity> entity, CTrans
 
 	if (eAnimationName == "flag")
 	{
-		m_game->changeScene("Scene_GameOver", std::make_shared<Scene_GameOver>(m_game), true);
+		std::shared_ptr<Scene> newScene = std::make_shared<Scene_GameOver>(m_game);
+		m_game->changeScene("Scene_GameOver", newScene);
 	}
 	if (eAnimationName == "coin")
 	{
@@ -146,7 +163,9 @@ void Scene_Level::checkConditionsForBlock(std::shared_ptr<Entity> entity, CTrans
 	}
 	if (eAnimationName == "water" || eAnimationName == "lava")
 	{
-		m_game->changeScene(m_levelName, std::make_shared<Scene_Level>(m_game, m_levelPath, m_levelName), true);
+		std::shared_ptr<Scene> newScene = std::make_shared<Scene_Level>(m_game, m_levelPath, m_levelName);
+		m_hasEnded = true;
+		m_game->changeScene(m_levelName, newScene);
 	}
 }
 
@@ -181,7 +200,10 @@ void Scene_Level::sCollision()
 			playerTransform.pos.y = de->getComponent<CTransform>().pos.y - m_gridSize.y;
 		}
 		checkConditionsForBlock(de, playerTransform);
-
+		if (m_hasEnded)
+		{
+			return;
+		}
 		playerState.state = stateType::STAND;
 		playerInput.canJump = true;
 		if (playerTransform.pos.x != playerTransform.prevPos.x
@@ -200,21 +222,29 @@ void Scene_Level::sCollision()
 		playerInput.canJump = false;
 	}
 
-	auto leftBlockPosition = Vec2(((int(playerTransform.pos.x) / int(m_gridSize.x)) * m_gridSize.x) - m_gridSize.x + 32,
-		(((int(playerTransform.pos.y) / int(m_gridSize.y)) + 1) * m_gridSize.y) - 32);
-	if (leftBlockPosition.x > 0)
+	if (int(m_gridSize.x) * int(m_gridSize.x) > 0)
 	{
-		if (auto le = searchIntersectBlock(leftBlockPosition))
+		auto leftBlockPosition = Vec2(((int(playerTransform.pos.x) / int(m_gridSize.x)) * m_gridSize.x) - m_gridSize.x + 32,
+			(((int(playerTransform.pos.y) / int(m_gridSize.y)) + 1) * m_gridSize.y) - 32);
+		if (leftBlockPosition.x > 0)
 		{
-			Vec2 leftOverlap = physics.GetOverlap(m_player, le);
-			if (leftOverlap.x > 0)
+			if (auto le = searchIntersectBlock(leftBlockPosition))
 			{
-				checkConditionsForBlock(le, playerTransform);
-				playerTransform.pos.x += leftOverlap.x;
+				Vec2 leftOverlap = physics.GetOverlap(m_player, le);
+				if (leftOverlap.x > 0)
+				{
+					checkConditionsForBlock(le, playerTransform);
+					if (m_hasEnded)
+					{
+						return;
+					}
+					playerTransform.pos.x += leftOverlap.x;
 
+				}
 			}
 		}
 	}
+	
 	auto rightBlockPosition = Vec2(((int(playerTransform.pos.x) / int(m_gridSize.x)) * m_gridSize.x) + m_gridSize.x + 32,
 		(((int(playerTransform.pos.y) / int(m_gridSize.y)) + 1) * m_gridSize.y) - 32);
 	if (auto re = searchIntersectBlock(rightBlockPosition))
@@ -224,6 +254,10 @@ void Scene_Level::sCollision()
 		if (rightOverlap.x > 0)
 		{
 			checkConditionsForBlock(re, playerTransform);
+			if (m_hasEnded)
+			{
+				return;
+			}
 			playerTransform.pos.x -= rightOverlap.x;
 		}
 	}
@@ -235,6 +269,10 @@ void Scene_Level::sCollision()
 		if (upOverlap.y > 0)
 		{
 			checkConditionsForBlock(ue, playerTransform);
+			if (m_hasEnded)
+			{
+				return;
+			}
 			playerTransform.pos.y += upOverlap.y;
 		}
 
@@ -425,11 +463,14 @@ void Scene_Level::sDoAction(const Action& action)
 		}
 		else if (action.name() == "QUIT")
 		{
-			onEnd();
+			std::shared_ptr<Scene> newScene = std::make_shared<Scene_Menu>(m_game);
+			m_game->changeScene("Scene_Menu", newScene, true);
 		}
 		else if (action.name() == "RESTART")
 		{
-			m_game->changeScene(m_levelName, std::make_shared<Scene_Level>(m_game, m_levelPath, m_levelName), true);
+			m_hasEnded = true;
+			std::shared_ptr<Scene> newScene = std::make_shared<Scene_Level>(m_game, m_levelPath, m_levelName);
+			m_game->changeScene(m_levelName, newScene, true);
 		}
 		if (m_framesForJump >= m_playerConfig.JUMP)
 		{
@@ -540,113 +581,188 @@ Vec2 Scene_Level::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entit
 
 void Scene_Level::loadLevel(const std::string& filename)
 {
-	// reset the entity manager every time we load a level
+	// Reset the entity manager every time we load a level
 	m_entityManager = EntityManager();
 
 	std::ifstream fileIn(filename);
-	if (fileIn.is_open())
+	if (!fileIn.is_open() )
 	{
-		std::string line;
-		while (std::getline(fileIn, line))
+		std::cerr << "Error opening file: " << filename << std::endl;
+		return;
+	}
+
+	std::string line;
+	while (fileIn.peek() != EOF && std::getline(fileIn, line))
+	{
+		std::istringstream iss(line);
+		std::string pieceOfLevelType;
+		 
+		if (!(iss >> pieceOfLevelType))
 		{
-			std::istringstream iss(line);
-			std::string pieceOfLevelType;
-			if ((iss >> pieceOfLevelType))
+			std::cerr << "Error reading level type from line: " << line << std::endl;
+			continue;  
+		}
+
+		std::cout << "Reading level type: " << pieceOfLevelType << std::endl;
+
+		if (pieceOfLevelType == "flag")
+		{
+			std::string nameAnim;
+			int x, y;
+			 
+			if (!(iss >> nameAnim >> x >> y))
 			{
-				if (pieceOfLevelType == "flag")
-				{
-					std::string nameAnim;
-					int x, y;
-					iss >> nameAnim >> x >> y;
-					auto dec = m_entityManager.addEntity(pieceOfLevelType);
-					dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
-					dec->addComponent<CTransform>(Vec2(0,0), Vec2(0, 0), Vec2(1, 1), 1);
-					dec->getComponent<CTransform>().pos = gridToMidPixel(x, y, dec);
-					dec->addComponent<CBoundingBox>(Vec2(dec->getComponent<CAnimation>().animation.getSize().x * dec->getComponent<CTransform>().scale.x,
-						dec->getComponent<CAnimation>().animation.getSize().y * dec->getComponent<CTransform>().scale.y));
-				}
-				if (pieceOfLevelType == "tile")
-				{
-					std::string nameAnim;
-					int x, y;
-					iss >> nameAnim >> x >> y;
-					auto tile = m_entityManager.addEntity(pieceOfLevelType);
-					tile->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
-					tile->addComponent<CTransform>(Vec2(0,0), Vec2(0, 0), Vec2(4, 4), 1);
-					tile->getComponent<CTransform>().pos = gridToMidPixel(x, y, tile);
-					tile->addComponent<CBoundingBox>(Vec2(64, 64));
-				}
-				if (pieceOfLevelType == "dec")
-				{
-					std::string nameAnim;
-					int x, y;
-					iss >> nameAnim >> x >> y;
-					auto dec = m_entityManager.addEntity(pieceOfLevelType);
-					dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
-					dec->addComponent<CTransform>(Vec2(0, 0), Vec2(0, 0), Vec2(4, 4), 1);
-					dec->getComponent<CTransform>().pos = gridToMidPixel(x, y, dec);
-				}
-				if (pieceOfLevelType == "coin")
-				{
-					std::string nameAnim;
-					int x, y;
-					iss >> nameAnim >> x >> y;
-					auto dec = m_entityManager.addEntity(pieceOfLevelType);
-					dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
-					dec->addComponent<CTransform>(Vec2(0,0), Vec2(0, 0), Vec2(4, 4), 1);
-					dec->getComponent<CTransform>().pos = gridToMidPixel(x, y, dec);
-					dec->addComponent<CBoundingBox>(Vec2(dec->getComponent<CAnimation>().animation.getSize().x * 4,
-						dec->getComponent<CAnimation>().animation.getSize().y * 4));
-				}
-				if (pieceOfLevelType == "player")
-				{
-					iss >> m_playerConfig.X >> m_playerConfig.Y >> m_playerConfig.BX >> m_playerConfig.BY;
-					iss >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.JUMP >> m_playerConfig.GRAVITY;
-				}
-				if (pieceOfLevelType == "background")
-				{
-					std::string textureFileName;
-					float speed;
-					iss >> textureFileName >> speed;
-					m_backgroundSpeed = speed;
-					m_backgroundTexture.loadFromFile(textureFileName);
-					m_backgroundSprite.setTexture(m_backgroundTexture);
-					
+				std::cerr << "Error reading flag data from line: " << line << std::endl;
+				continue; 
+			}
 
+			auto dec = m_entityManager.addEntity(pieceOfLevelType);
+			dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
+			dec->addComponent<CTransform>(Vec2(0, 0), Vec2(0, 0), Vec2(1, 1), 1);
+			dec->getComponent<CTransform>().pos = gridToMidPixel(x, y, dec);
+			dec->addComponent<CBoundingBox>(Vec2(dec->getComponent<CAnimation>().animation.getSize().x * dec->getComponent<CTransform>().scale.x,
+				dec->getComponent<CAnimation>().animation.getSize().y * dec->getComponent<CTransform>().scale.y));
+		}
+		else if (pieceOfLevelType == "tile")
+		{
+			std::string nameAnim;
+			int x, y;
 
-				}
-				if (pieceOfLevelType == "midground")
-				{
-					std::string textureFileName;
-					float speed;
-					iss >> textureFileName >> speed;
-					m_midgroundSpeed = speed;
-					m_midgroundTexture.loadFromFile(textureFileName);
-					m_midgroundSprite.setTexture(m_midgroundTexture);
-					
-				}
-				if (pieceOfLevelType == "foreground")
-				{
-					std::string textureFileName;
-					float speed;
-					iss >> textureFileName >> speed;
-					m_foregroundSpeed = speed;
-					sf::Texture texture;
-					m_foregroundTexture.loadFromFile(textureFileName);
-					m_foregroundSprite.setTexture(m_foregroundTexture);
-				}
-				if (pieceOfLevelType == "color")
-				{
-					int r = 0, g = 0, b = 0;
-					iss >> r >> g >> b;
-					m_colorBackground = sf::Color(r, g, b);
-				}
+			if (!(iss >> nameAnim >> x >> y))
+			{
+				std::cerr << "Error reading tile data from line: " << line << std::endl;
+				continue;
+			}
+
+			auto tile = m_entityManager.addEntity(pieceOfLevelType);
+			tile->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
+			tile->addComponent<CTransform>(Vec2(0, 0), Vec2(0, 0), Vec2(4, 4), 1);
+			tile->getComponent<CTransform>().pos = gridToMidPixel(x, y, tile);
+			tile->addComponent<CBoundingBox>(Vec2(64, 64));
+		}
+		else if (pieceOfLevelType == "dec")
+		{
+			std::string nameAnim;
+			int x, y;
+
+			if (!(iss >> nameAnim >> x >> y))
+			{
+				std::cerr << "Error reading decoration data from line: " << line << std::endl;
+				continue;
+			}
+
+			auto dec = m_entityManager.addEntity(pieceOfLevelType);
+			dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
+			dec->addComponent<CTransform>(Vec2(0, 0), Vec2(0, 0), Vec2(4, 4), 1);
+			dec->getComponent<CTransform>().pos = gridToMidPixel(x, y, dec);
+		}
+		else if (pieceOfLevelType == "coin")
+		{
+			std::string nameAnim;
+			int x, y;
+
+			if (!(iss >> nameAnim >> x >> y))
+			{
+				std::cerr << "Error reading coin data from line: " << line << std::endl;
+				continue;
+			}
+
+			auto dec = m_entityManager.addEntity(pieceOfLevelType);
+			dec->addComponent<CAnimation>(m_game->assets().getAnimation(nameAnim), true);
+			dec->addComponent<CTransform>(Vec2(0, 0), Vec2(0, 0), Vec2(4, 4), 1);
+			dec->getComponent<CTransform>().pos = gridToMidPixel(x, y, dec);
+			dec->addComponent<CBoundingBox>(Vec2(dec->getComponent<CAnimation>().animation.getSize().x * 4,
+				dec->getComponent<CAnimation>().animation.getSize().y * 4));
+		}
+		else if (pieceOfLevelType == "player")
+		{
+			if (!(iss >> m_playerConfig.X >> m_playerConfig.Y >> m_playerConfig.BX >> m_playerConfig.BY))
+			{
+				std::cerr << "Error reading player configuration from line: " << line << std::endl;
+				continue;
+			}
+			if (!(iss >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.JUMP >> m_playerConfig.GRAVITY))
+			{
+				std::cerr << "Error reading remaining player configuration data from line: " << line << std::endl;
+				continue;
 			}
 		}
+		else if (pieceOfLevelType == "background")
+		{
+			std::string textureFileName;
+			float speed;
+
+			if (!(iss >> textureFileName >> speed))
+			{
+				std::cerr << "Error reading background data from line: " << line << std::endl;
+				continue;
+			}
+
+			m_backgroundSpeed = speed;
+			if (!m_backgroundTexture.loadFromFile(textureFileName))
+			{
+				std::cerr << "Error loading background texture from file: " << textureFileName << std::endl;
+				continue;
+			}
+			m_backgroundSprite.setTexture(m_backgroundTexture);
+		}
+		else if (pieceOfLevelType == "midground")
+		{
+			std::string textureFileName;
+			float speed;
+
+			if (!(iss >> textureFileName >> speed))
+			{
+				std::cerr << "Error reading midground data from line: " << line << std::endl;
+				continue;
+			}
+
+			m_midgroundSpeed = speed;
+			if (!m_midgroundTexture.loadFromFile(textureFileName))
+			{
+				std::cerr << "Error loading midground texture from file: " << textureFileName << std::endl;
+				continue;
+			}
+			m_midgroundSprite.setTexture(m_midgroundTexture);
+		}
+		else if (pieceOfLevelType == "foreground")
+		{
+			std::string textureFileName;
+			float speed;
+
+			if (!(iss >> textureFileName >> speed))
+			{
+				std::cerr << "Error reading foreground data from line: " << line << std::endl;
+				continue;
+			}
+
+			m_foregroundSpeed = speed;
+			if (!m_foregroundTexture.loadFromFile(textureFileName))
+			{
+				std::cerr << "Error loading foreground texture from file: " << textureFileName << std::endl;
+				continue;
+			}
+			m_foregroundSprite.setTexture(m_foregroundTexture);
+		}
+		else if (pieceOfLevelType == "color")
+		{
+			int r = 0, g = 0, b = 0;
+			if (!(iss >> r >> g >> b))
+			{
+				std::cerr << "Error reading color data from line: " << line << std::endl;
+				continue;
+			}
+			m_colorBackground = sf::Color(r, g, b);
+		}
+		else
+		{
+			std::cerr << "Unknown level type: " << pieceOfLevelType << std::endl;
+		}
 	}
+
+	fileIn.close();
 	spawnPlayer();
 }
-
 void Scene_Level::spawnPlayer()
 {
 	m_player = m_entityManager.addEntity("player");
@@ -678,12 +794,23 @@ void Scene_Level::spawnBullet(std::shared_ptr<Entity> entity)
 
 void Scene_Level::update()
 {
-	m_entityManager.update();
+	
 	// TODO: implement pause functionality
 
-	sMovement();
-	sCollision();
-	sLifespan();
-	sAnimation();
-	sRender();
+	if (!m_hasEnded)
+	{
+		m_entityManager.update();
+
+		sMovement();
+		sCollision();
+		if (m_hasEnded)
+		{
+			return;
+		}
+		sLifespan();
+		sAnimation();
+		sRender();
+	}
+	
+	
 }

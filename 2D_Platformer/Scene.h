@@ -22,8 +22,6 @@ protected:
 	void setPaused(bool paused);
 
 public: 
-	Scene();
-	~Scene();
 	Scene(GameEngine* gameEngine);
 
 

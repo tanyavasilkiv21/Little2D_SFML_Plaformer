@@ -4,8 +4,11 @@
 
 void GameEngine::update()
 {
-    currentScene()->update();
-    sUserInput();
+    if (currentScene()) 
+    {
+        currentScene()->update();
+        sUserInput();
+    }
 }
 
 GameEngine::GameEngine(const std::string& path)
@@ -26,24 +29,31 @@ std::shared_ptr<Scene>& GameEngine::currentScene()
     return m_sceneMap[m_currentScene];
 }
 
-void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)
+void GameEngine::changeScene(std::string sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)
 {
-    auto it = m_sceneMap.find(sceneName);
-    if (it != m_sceneMap.end())
+    std::cout << "Changing scene to: " << sceneName << std::endl;
+
+    if (endCurrentScene && m_currentScene == sceneName)
     {
-        m_currentScene = sceneName;
-        return; 
+        std::cout << "Ending current scene: " << sceneName << std::endl;
+        auto currentSceneIt = m_sceneMap.find(m_currentScene);
+        if (currentSceneIt != m_sceneMap.end() && currentSceneIt->second)
+        {
+            currentSceneIt->second->onEnd();
+            currentSceneIt->second.reset(); 
+            m_sceneMap.erase(currentSceneIt);  
+        }
+        else
+        {
+            std::cerr << "Attempted to end a scene that does not exist!" << std::endl;
+        }
     }
 
     m_sceneMap[sceneName] = scene;
-
-    if (endCurrentScene && m_sceneMap[m_currentScene])
-    {
-        m_sceneMap[m_currentScene]->onEnd();
-    }
     m_currentScene = sceneName;
-}
 
+    std::cout << "Scene changed successfully to: " << m_currentScene << std::endl;
+}
 void GameEngine::quit()
 {
     m_window.close();

@@ -64,18 +64,32 @@ void Scene_Menu::sDoAction(const Action& action)
 			switch (m_selectedItemIndex)
 			{
 			case 0:
+			{
 				name = "Level1";
-				m_game->changeScene(name, std::make_shared<Scene_Level>(m_game, "levels_config/level1.txt", name));
-				break;
-			case 1:
-				name = "Level2";
-				m_game->changeScene(name, std::make_shared<Scene_Level>(m_game, "levels_config/level2.txt", name));
-				break;
-			case 2:
-				name = "Level3";
-				m_game->changeScene(name, std::make_shared<Scene_Level>(m_game, "levels_config/level3.txt", name));
+				std::shared_ptr<Scene> newScene = std::make_shared<Scene_Level>(m_game, "levels_config/level1.txt", name);
+				m_game->changeScene(name, newScene);
 				
 				break;
+			}
+				
+			case 1:
+			{
+				name = "Level2";
+				std::shared_ptr<Scene> newScene = std::make_shared<Scene_Level>(m_game, "levels_config/level2.txt", name);
+				m_game->changeScene(name, newScene);
+				
+				break;
+			}
+				
+			case 2:
+			{
+				name = "Level3";
+				std::shared_ptr<Scene> newScene = std::make_shared<Scene_Level>(m_game, "levels_config/level3.txt", name);
+				m_game->changeScene(name, newScene);
+				
+
+				break;
+			}
 			}
 		}
 		if (action.name() == "QUIT")

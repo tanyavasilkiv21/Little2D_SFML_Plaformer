@@ -1,9 +1,7 @@
 color 125 183 205
-
 background 		assets/parallaxLevelTwo/back.png	0.005	
 midground 		assets/parallaxLevelTwo/middle.png	0.035
 foreground 		assets/parallaxLevelTwo/near.png	0.05
-
 tile tile_one 	0 	0
 tile tile_one 	1	0
 tile tile_one 	2	0
@@ -20,13 +18,11 @@ tile tile_one 	17	0
 tile tile_one 	18	0
 tile tile_one 	19	0
 tile tile_one 	20	0
-
 tile tile_one 	2	1
 tile tile_one 	3 	1
 tile tile_one 	6 	1
 tile tile_one 	9 	1
 tile tile_one 	12 	1
-
 tile tile_one 	3 	2
 tile tile_one 	4 	2
 tile tile_one 	21	2
@@ -35,7 +31,6 @@ tile tile_one 	23	2
 tile tile_one 	33 	2
 tile tile_one 	34 	2
 tile tile_one 	35 	2
-
 tile tile_one 	4 	3
 tile tile_one 	5 	3
 tile tile_one 	14 	3
@@ -44,7 +39,6 @@ tile tile_one 	16 	3
 tile tile_one 	25	3
 tile tile_one 	26	3
 tile tile_one 	27	3
-
 tile tile_one 	5 	4
 tile tile_one 	6 	4
 tile tile_one 	13 	4
@@ -52,7 +46,6 @@ tile tile_one 	14 	4
 tile tile_one 	29	4
 tile tile_one 	30	4
 tile tile_one 	31	4
-
 tile tile_one 	6 	5
 tile tile_one 	7 	5
 tile tile_one 	8 	5
@@ -65,12 +58,10 @@ tile tile_one 	33 	5
 tile tile_one 	34 	5
 tile tile_one 	35 	5
 tile tile_one 	36 	5
-
 tile rock 	15 	2
 tile rock 	15 	1
 tile rock 	16 	2
 tile rock 	16 	1
-
 tile water    	6 	0
 tile water    	7 	0
 tile water    	8 	0
@@ -105,7 +96,6 @@ tile water    	43 	0
 tile water    	44 	0
 tile water    	45 	0
 tile water    	46 	0
-
 dec  water_dec 	6	1
 dec  water_dec 	7	1
 dec  water_dec 	8	1
@@ -140,16 +130,11 @@ dec  water_dec 	43	1
 dec  water_dec 	44	1
 dec  water_dec 	45	1
 dec  water_dec 	46	1
-
 dec  bush 	6	6
 dec  bush 	9	6
 dec  bush 	33	6
-
 dec  tree_one	8	6
 dec  tree_one	33	6
-
 flag flag	35 	6
-
 tile coin	6	2
-
 player 1 5 64 64 5 5 5 5

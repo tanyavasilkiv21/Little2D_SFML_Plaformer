@@ -54,7 +54,7 @@ protected:
 	void sDebug();
 	void sLifespan();
 public:
-	Scene_Level(GameEngine* gameEngine, const std::string& levelPath, std::string& levelName);
+	Scene_Level(GameEngine* gameEngine, const std::string levelPath, std::string levelName);
 	void update();
 
 	Vec2 gridToMidPixel(float gridx, float gridY, std::shared_ptr<Entity> entity);
@@ -62,5 +62,6 @@ public:
 	void spawnPlayer();
 	void spawnBullet(std::shared_ptr<Entity> entity);
 	void onEnd();
+
 };
 
