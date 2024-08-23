@@ -85,6 +85,7 @@ void Scene_Level::sAnimation()
 			if (Anim.animation.hasEnded() && Anim.repeat == false)
 			{
 				e->removeComponent<CAnimation>();
+				e->destroy();
 			}
 		}
 	}
@@ -795,8 +796,6 @@ void Scene_Level::spawnBullet(std::shared_ptr<Entity> entity)
 void Scene_Level::update()
 {
 	
-	// TODO: implement pause functionality
-
 	if (!m_hasEnded)
 	{
 		m_entityManager.update();
@@ -811,6 +810,4 @@ void Scene_Level::update()
 		sAnimation();
 		sRender();
 	}
-	
-	
 }

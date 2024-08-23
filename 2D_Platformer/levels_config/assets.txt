@@ -5,14 +5,14 @@ Texture		player_jump		assets/Meow-Knight_Jump.png
 Texture		player_run		assets/Meow-Knight_Run.png
 Texture		tile_one		assets/tile_one.png
 Texture		tree_one		assets/tree_one.png
-Texture		star			assets/star.png
+Texture		star			assets/fire.png
 Texture		coin			assets/coin.png
 Texture	     	rock			assets/rock.png
 Texture	     	bush			assets/bush.png
+Texture	     	bush_two		assets/bush_two.png
 Texture	     	explosion		assets/explosion.png
 Texture	     	flag			assets/flag.png
-Texture	     	water			assets/water_tile.png
-Texture	     	water_dec 		assets/water_dec.png
+Texture	     	water			assets/water_two.png
 Texture	     	lava			assets/lava_tile.png
 Texture	     	lava_dec 		assets/lava_dec.png
 
@@ -23,13 +23,13 @@ Animation	run		player_run	8     	1
 Animation	tile_one	tile_one	1     	0
 Animation	tree_one	tree_one	1    	0
 Animation	coin		coin		14 	1
-Animation	star		star		1 	0
+Animation	star		star		4 	1
 Animation	rock		rock		1    	0
 Animation	bush		bush		1 	0
+Animation	bush_two	bush_two	1 	0
 Animation	explosion	explosion	5 	1
 Animation	flag		flag		5 	1
-Animation	water		water		4 	1
-Animation	water_dec	water_dec	2 	1
+Animation	water		water		2 	1
 Animation	lava		lava		4 	1
 Animation	lava_dec	lava_dec	2 	1
 
