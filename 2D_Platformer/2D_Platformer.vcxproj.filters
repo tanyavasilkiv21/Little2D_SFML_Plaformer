@@ -126,6 +126,9 @@
     <ClInclude Include="Scene_GameOver.h">
       <Filter>headers</Filter>
     </ClInclude>
+    <ClInclude Include="ProfileTimer.hpp">
+      <Filter>headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">

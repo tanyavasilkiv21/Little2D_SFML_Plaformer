@@ -193,6 +193,7 @@
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="Physics.h" />
+    <ClInclude Include="ProfileTimer.hpp" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Scene_GameOver.h" />
     <ClInclude Include="Scene_Level.h" />

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include "ProfileTimer.hpp"
 
 Scene_Level::Scene_Level(GameEngine* gameEngine, const std::string levelPath, std::string levelName)
 	:Scene(gameEngine), m_levelPath(levelPath), m_levelName(levelName)
@@ -278,7 +279,80 @@ void Scene_Level::sCollision()
 		}
 
 	}
+	bool diag = false;
+	auto upLeftBlockPosition = Vec2((int(playerTransform.pos.x) / int(m_gridSize.x) * m_gridSize.x) - m_gridSize.x + 32,
+		(int(playerTransform.pos.y) / int(m_gridSize.y) * m_gridSize.y) - (m_gridSize.y) + 32);
+	if (auto ule = searchIntersectBlock(upLeftBlockPosition))
+	{
+		Vec2 upLeftOverlap = physics.GetOverlap(m_player, ule);
+		if (upLeftOverlap.y > 0 && upLeftOverlap.x > 0)
+		{
+			checkConditionsForBlock(ule, playerTransform);
+			if (m_hasEnded)
+			{
+				return;
+			}
+			playerTransform.pos.x += upLeftOverlap.x;
+			diag = true;
+		}
+	}
+	if(!diag)
+	{
+		auto upRightBlockPosition = Vec2((int(playerTransform.pos.x) / int(m_gridSize.x) * m_gridSize.x) + m_gridSize.x + 32,
+			(int(playerTransform.pos.y) / int(m_gridSize.y) * m_gridSize.y) - (m_gridSize.y) + 32);
+		if (auto ure = searchIntersectBlock(upRightBlockPosition))
+		{
+			Vec2 upRightOverlap = physics.GetOverlap(m_player, ure);
+			if (upRightOverlap.y > 0 && upRightOverlap.x > 0)
+			{
+				checkConditionsForBlock(ure, playerTransform);
+				if (m_hasEnded)
+				{
+					return;
+				}
+				playerTransform.pos.x -= upRightOverlap.x;
+				diag = true;
+			}
+		}
+		if (!diag)
+		{
+			auto downRightBlockPosition = Vec2(((int(playerTransform.pos.x) / int(m_gridSize.x)) * m_gridSize.x) + m_gridSize.x + 32,
+				(((int(playerTransform.pos.y) / int(m_gridSize.y)) + 2) * m_gridSize.y) - 32);
+			if (auto dre = searchIntersectBlock(downRightBlockPosition))
+			{
+				Vec2 downRightOverlap = physics.GetOverlap(m_player, dre);
+				if (downRightOverlap.y > 0 && downRightOverlap.x > 0)
+				{
+					checkConditionsForBlock(dre, playerTransform);
+					if (m_hasEnded)
+					{
+						return;
+					}
+					playerTransform.pos.x -= downRightOverlap.x;
+					diag = true;
+				}
+			}
+			if (!diag)
+			{
+				auto downLeftBlockPosition = Vec2(((int(playerTransform.pos.x) / int(m_gridSize.x)) * m_gridSize.x) - m_gridSize.x + 32,
+					(((int(playerTransform.pos.y) / int(m_gridSize.y)) + 2) * m_gridSize.y) - 32);
+				if (auto dle = searchIntersectBlock(downLeftBlockPosition))
+				{
+					Vec2 downLeftOverlap = physics.GetOverlap(m_player, dle);
+					if (downLeftOverlap.y > 0 && downLeftOverlap.x > 0)
+					{
+						checkConditionsForBlock(dle, playerTransform);
+						if (m_hasEnded)
+						{
+							return;
+						}
+						playerTransform.pos.x += downLeftOverlap.x;
+					}
+				}
+			}
+		}
 
+	}
 	for (auto& bullet : m_entityManager.getEntities("bullet"))
 	{
 		for (auto tile : m_entityManager.getEntities("tile"))
@@ -586,9 +660,8 @@ void Scene_Level::loadLevel(const std::string& filename)
 	m_entityManager = EntityManager();
 
 	std::ifstream fileIn(filename);
-	if (!fileIn.is_open() )
+	if (!fileIn.is_open())
 	{
-		std::cerr << "Error opening file: " << filename << std::endl;
 		return;
 	}
 
@@ -597,24 +670,20 @@ void Scene_Level::loadLevel(const std::string& filename)
 	{
 		std::istringstream iss(line);
 		std::string pieceOfLevelType;
-		 
+
 		if (!(iss >> pieceOfLevelType))
 		{
-			std::cerr << "Error reading level type from line: " << line << std::endl;
-			continue;  
+			continue;
 		}
-
-		std::cout << "Reading level type: " << pieceOfLevelType << std::endl;
 
 		if (pieceOfLevelType == "flag")
 		{
 			std::string nameAnim;
 			int x, y;
-			 
+
 			if (!(iss >> nameAnim >> x >> y))
 			{
-				std::cerr << "Error reading flag data from line: " << line << std::endl;
-				continue; 
+				continue;
 			}
 
 			auto dec = m_entityManager.addEntity(pieceOfLevelType);
@@ -631,7 +700,6 @@ void Scene_Level::loadLevel(const std::string& filename)
 
 			if (!(iss >> nameAnim >> x >> y))
 			{
-				std::cerr << "Error reading tile data from line: " << line << std::endl;
 				continue;
 			}
 
@@ -648,7 +716,6 @@ void Scene_Level::loadLevel(const std::string& filename)
 
 			if (!(iss >> nameAnim >> x >> y))
 			{
-				std::cerr << "Error reading decoration data from line: " << line << std::endl;
 				continue;
 			}
 
@@ -664,7 +731,6 @@ void Scene_Level::loadLevel(const std::string& filename)
 
 			if (!(iss >> nameAnim >> x >> y))
 			{
-				std::cerr << "Error reading coin data from line: " << line << std::endl;
 				continue;
 			}
 
@@ -679,12 +745,10 @@ void Scene_Level::loadLevel(const std::string& filename)
 		{
 			if (!(iss >> m_playerConfig.X >> m_playerConfig.Y >> m_playerConfig.BX >> m_playerConfig.BY))
 			{
-				std::cerr << "Error reading player configuration from line: " << line << std::endl;
 				continue;
 			}
 			if (!(iss >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.JUMP >> m_playerConfig.GRAVITY))
 			{
-				std::cerr << "Error reading remaining player configuration data from line: " << line << std::endl;
 				continue;
 			}
 		}
@@ -695,14 +759,12 @@ void Scene_Level::loadLevel(const std::string& filename)
 
 			if (!(iss >> textureFileName >> speed))
 			{
-				std::cerr << "Error reading background data from line: " << line << std::endl;
 				continue;
 			}
 
 			m_backgroundSpeed = speed;
 			if (!m_backgroundTexture.loadFromFile(textureFileName))
 			{
-				std::cerr << "Error loading background texture from file: " << textureFileName << std::endl;
 				continue;
 			}
 			m_backgroundSprite.setTexture(m_backgroundTexture);
@@ -714,14 +776,12 @@ void Scene_Level::loadLevel(const std::string& filename)
 
 			if (!(iss >> textureFileName >> speed))
 			{
-				std::cerr << "Error reading midground data from line: " << line << std::endl;
 				continue;
 			}
 
 			m_midgroundSpeed = speed;
 			if (!m_midgroundTexture.loadFromFile(textureFileName))
 			{
-				std::cerr << "Error loading midground texture from file: " << textureFileName << std::endl;
 				continue;
 			}
 			m_midgroundSprite.setTexture(m_midgroundTexture);
@@ -733,14 +793,12 @@ void Scene_Level::loadLevel(const std::string& filename)
 
 			if (!(iss >> textureFileName >> speed))
 			{
-				std::cerr << "Error reading foreground data from line: " << line << std::endl;
 				continue;
 			}
 
 			m_foregroundSpeed = speed;
 			if (!m_foregroundTexture.loadFromFile(textureFileName))
 			{
-				std::cerr << "Error loading foreground texture from file: " << textureFileName << std::endl;
 				continue;
 			}
 			m_foregroundSprite.setTexture(m_foregroundTexture);
@@ -750,17 +808,11 @@ void Scene_Level::loadLevel(const std::string& filename)
 			int r = 0, g = 0, b = 0;
 			if (!(iss >> r >> g >> b))
 			{
-				std::cerr << "Error reading color data from line: " << line << std::endl;
 				continue;
 			}
 			m_colorBackground = sf::Color(r, g, b);
 		}
-		else
-		{
-			std::cerr << "Unknown level type: " << pieceOfLevelType << std::endl;
-		}
 	}
-
 	fileIn.close();
 	spawnPlayer();
 }
@@ -800,14 +852,23 @@ void Scene_Level::update()
 	{
 		m_entityManager.update();
 
-		sMovement();
-		sCollision();
+		{
+			PROFILING_SCOPE("Movement");
+			sMovement();
+		}
+		{
+			PROFILING_SCOPE("Collision");
+			sCollision();
+		}
 		if (m_hasEnded)
 		{
 			return;
 		}
 		sLifespan();
 		sAnimation();
-		sRender();
+		{
+			PROFILING_SCOPE("Render");
+			sRender();
+		}
 	}
 }

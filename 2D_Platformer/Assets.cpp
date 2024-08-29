@@ -1,8 +1,10 @@
 #include "Assets.h"
 #include <fstream>
 #include <sstream>
+#include "ProfileTimer.hpp"
 void Assets::addTexture(std::string name, std::string path)
 {
+	PROFILING_SCOPE("AddText" + path);
 	sf::Texture texture;
 	texture.loadFromFile(path);
 	m_textures[name] = texture;
@@ -10,12 +12,14 @@ void Assets::addTexture(std::string name, std::string path)
 
 void Assets::addAnimation(std::string name, std::string t, int countFrames, int speed)
 {
+	PROFILING_SCOPE("AddAnime");
 	Animation animation(name, getTexture(t), countFrames, speed);
 	m_animation[name] = animation;
 }
 
 void Assets::addFont(std::string name, std::string path)
 {
+	PROFILING_SCOPE("AddFont" + path);
 	sf::Font f;
 	f.loadFromFile(path);
 	m_fonts[name] = f;

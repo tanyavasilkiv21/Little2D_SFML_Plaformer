@@ -1,25 +1,39 @@
 #include "GameEngine.h"
 #include "Scene_Menu.h"
 #include <iostream>
+#include "ProfileTimer.hpp"
 
 void GameEngine::update()
 {
     if (currentScene()) 
     {
-        currentScene()->update();
+
+        {
+            PROFILING_SCOPE("Update");
+            currentScene()->update();
+        }
         sUserInput();
     }
 }
 
 GameEngine::GameEngine(const std::string& path)
 {
+    PROFILING_FUNCTION();
     init(path);
 }
 
 void GameEngine::init(const std::string& path)
 {
-    m_assets.loadFromFile(path);
-    m_window.create(sf::VideoMode(1280, 768), "Meow-Knight!");
+    PROFILING_FUNCTION();
+
+    {
+        PROFILING_SCOPE("Assets");
+        m_assets.loadFromFile(path);
+    }
+    {
+        PROFILING_SCOPE("SFML WINDOW");
+        m_window.create(sf::VideoMode(1280, 768), "Meow-Knight!");
+    }
     m_window.setFramerateLimit(60);
     changeScene("Scene_Menu", std::make_shared<Scene_Menu>(this));
 }
@@ -31,11 +45,8 @@ std::shared_ptr<Scene>& GameEngine::currentScene()
 
 void GameEngine::changeScene(std::string sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)
 {
-    std::cout << "Changing scene to: " << sceneName << std::endl;
-
     if (endCurrentScene && m_currentScene == sceneName)
     {
-        std::cout << "Ending current scene: " << sceneName << std::endl;
         auto currentSceneIt = m_sceneMap.find(m_currentScene);
         if (currentSceneIt != m_sceneMap.end() && currentSceneIt->second)
         {
@@ -43,16 +54,11 @@ void GameEngine::changeScene(std::string sceneName, std::shared_ptr<Scene> scene
             currentSceneIt->second.reset(); 
             m_sceneMap.erase(currentSceneIt);  
         }
-        else
-        {
-            std::cerr << "Attempted to end a scene that does not exist!" << std::endl;
-        }
     }
 
     m_sceneMap[sceneName] = scene;
     m_currentScene = sceneName;
 
-    std::cout << "Scene changed successfully to: " << m_currentScene << std::endl;
 }
 void GameEngine::quit()
 {
